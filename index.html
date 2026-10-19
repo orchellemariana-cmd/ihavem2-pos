@@ -111,6 +111,24 @@ th,td{padding:7px 6px}
 .glass{border-radius:20px}
 .receipt{max-width:340px}
 }
+@media(min-width:861px){
+#cus,#rep,#set{padding:12px}
+#cus h3,#rep h3,#set h3{font-size:14px;margin:10px 0 6px}
+#cus input,#rep input,#set input,#cus select,#rep select,#set select{padding:7px 10px;font-size:12px}
+#cus table,#rep table,#set table{font-size:12px}
+#cus th,#cus td,#rep th,#rep td,#set th,#set td{padding:6px 6px}
+#cus .form,#rep .form,#set .form{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:6px}
+#rep #rch svg{max-height:200px}
+#rep .rv-card{padding:10px}
+#rep .rv-big{font-size:22px}
+#rep .rv{gap:10px;margin-bottom:10px}
+#set .btn{padding:9px;font-size:13px;max-width:260px}
+#set .scroll{margin-top:6px}
+}
+@media(min-width:861px){#set .ufields label{font-size:12px}}
+.ufields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px}
+.ufields label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mute)}
+.ufields input,.ufields select{color:var(--text)}
 @media print{body{background:#fff}.blob,.app,.toast{display:none!important}.modal{position:static;background:none;padding:0;display:block}.receipt{background:#fff;color:#000;box-shadow:none;border:0;backdrop-filter:none;max-width:100%;max-height:none}.noprint{display:none!important}}
 </style>
 </head>
@@ -204,8 +222,14 @@ th,td{padding:7px 6px}
   <div class="form" style="margin-top:12px"><select id="tm"><option value="dark">ມືດ</option><option value="light">ສະຫວ່າງ</option><option value="auto">ຕາມລະບົບ</option></select><label style="display:flex;flex-direction:column;font-size:13px;color:var(--mute)">ຄວາມເບລີ glass<input id="tb" type="range" min="6" max="40"></label></div>
   <button class="btn" id="ssv" style="max-width:260px;margin-top:8px">ບັນທຶກການຕັ້ງຄ່າ</button>
 <h3>ຜູ້ໃຊ້ງານ</h3>
-  <div class="form"><input id="uu" placeholder="UID ຂອງຜູ້ໃຊ້"><input id="un2" placeholder="ຊື່ທີ່ສະແດງ"><select id="ur"><option value="staff">ພະນັກງານ</option><option value="admin">ຜູ້ດູແລ</option></select><input id="up" type="password" placeholder="ລະຫັດຜ່ານ (ໃສ່ເພື່ອຕັ້ງ/ປ່ຽນ)"></div>
-  <button class="btn" id="uadd" style="max-width:260px">ເພີ່ມ / ແກ້ໄຂຜູ້ໃຊ້</button>
+  <div class="ufields">
+    <label>ອີເມວ<input id="uu" type="text" placeholder="name@example.com" autocomplete="off"></label>
+    <label>ລະຫັດຜ່ານ (ຢ່າງໜ້ອຍ 6 ຕົວ)<input id="up" type="password" placeholder="ລະຫັດຜ່ານ" autocomplete="new-password"></label>
+    <label>ຊື່ທີ່ສະແດງ<input id="un2" type="text" placeholder="ເຊັ່ນ ສົມສີ"></label>
+    <label>ສິດ<select id="ur"><option value="staff">ພະນັກງານ</option><option value="admin">ຜູ້ດູແລ</option></select></label>
+  </div>
+  <p style="color:var(--mute);font-size:12px;margin:6px 0">ອະນຸມັດຜູ້ໃຊ້ທີ່ສະໝັກເອງ: ໃສ່ UID ໃນຊ່ອງອີເມວ ແລ້ວເລືອກສິດ (ບໍ່ຕ້ອງໃສ່ລະຫັດ).</p>
+  <button class="btn" id="uadd" style="max-width:260px">ສ້າງບັນຊີ / ອະນຸມັດ</button>
   <div class="scroll" style="margin-top:10px"><table><tbody id="ulist"></tbody></table></div>
 </section>
 <input id="imf" type="file" accept="image/*" hidden>
@@ -347,7 +371,23 @@ async function onAuth(user){
 }
 FAUTH.onAuthStateChanged(onAuth);
 function lgOut(){FAUTH.signOut().then(()=>location.reload())}
-async function usrAdd(){if(!SESS||SESS.role!='admin')return;const uid=$('#uu').value.trim(),rl=$('#ur').value,nm=$('#un2').value.trim();if(!uid)return toast('ໃສ່ UID ຂອງຜູ້ໃຊ້ກ່ອນ');try{const upd={role:rl};if(nm)upd.name=nm;await FDB.doc('users/'+uid).update(upd);$('#uu').value=$('#un2').value='';toast('ບັນທຶກແລ້ວ')}catch(e){fail()}}
+async function usrAdd(){
+ if(!SESS||SESS.role!='admin')return;
+ const v=$('#uu').value.trim(),rl=$('#ur').value,nm=$('#un2').value.trim(),pw=$('#up').value;
+ if(!v)return toast('ໃສ່ອີເມວ (ສ້າງບັນຊີໃໝ່) ຫຼື UID (ອະນຸມັດ/ປ່ຽນສິດ)');
+ if(v.includes('@')){
+   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v))return toast('ຮູບແບບອີເມວບໍ່ຖືກຕ້ອງ');
+   if(pw.length<6)return toast('ລະຫັດຜ່ານຢ່າງໜ້ອຍ 6 ຕົວ');
+   const s=await SB.auth.getSession();const tok=s.data.session&&s.data.session.access_token;
+   try{const r=await fetch(SB_URL+'/functions/v1/admin-set-password',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok,apikey:SB_KEY},body:JSON.stringify({action:'create',email:v.toLowerCase(),password:pw,name:nm,role:rl})});
+     const j=await r.json().catch(()=>({}));
+     if(!r.ok)return toast('ບໍ່ສຳເລັດ: '+(j.error||r.status));
+     $('#uu').value=$('#un2').value=$('#up').value='';toast('ສ້າງບັນຊີພະນັກງານແລ້ວ')
+   }catch(x){toast('ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້')}
+   return;
+ }
+ try{const upd={role:rl};if(nm)upd.name=nm;await FDB.doc('users/'+v).update(upd);$('#uu').value=$('#un2').value=$('#up').value='';toast('ບັນທຶກແລ້ວ')}catch(e){fail()}
+}
 async function usrDel(id){if(!SESS||SESS.role!='admin')return;if(id==SESS.id)return toast('ລຶບບັນຊີຕົນເອງບໍ່ໄດ້');if(!await yes('ລຶບຜູ້ໃຊ້ນີ້ອອກຈາກລະບົບ?'))return;try{await FDB.doc('users/'+id).delete()}catch(e){fail()}}
 $('#lgbtn').onclick=lgLogin;$('#lp').onkeydown=e=>{if(e.key=='Enter')lgLogin()};$('#lgnew').onclick=lgSignup;$('#uadd').onclick=usrAdd;$('#ulist').onclick=async e=>{const d=e.target.dataset;
  if(d.ud){usrDel(d.ud);return}
@@ -356,7 +396,7 @@ $('#lgbtn').onclick=lgLogin;$('#lp').onkeydown=e=>{if(e.key=='Enter')lgLogin()};
    const s=await SB.auth.getSession();const tok=s.data.session&&s.data.session.access_token;
    try{const r=await fetch(SB_URL+'/functions/v1/admin-set-password',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok,apikey:SB_KEY},body:JSON.stringify({uid:d.pw,password:pw})});const j=await r.json().catch(()=>({}));
      if(!r.ok)return toast('ບໍ່ສຳເລັດ: '+(j.error||r.status));toast('ປ່ຽນລະຫັດແລ້ວ')}catch(x){toast('ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້')}}
-};$('#out').onclick=lgOut;$('#up').classList.add('hide');
+};$('#out').onclick=lgOut;
 function report2(){
   report();
   const [a,b]=range(),len=b-a,DY=864e5,pa=new Date(a.getTime()-len);
