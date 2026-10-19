@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ລະບົບ POS ຄອມມືສອງ</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#cfe3ff;--bg2:#e9d8ff;--b1:#5aa9ff;--b2:#c58bff;--b3:#5ee0c2;--glass:rgba(255,255,255,.45);--glass2:rgba(255,255,255,.7);--line:rgba(255,255,255,.75);--text:#14213d;--mute:#5b6784;--acc:#2f6bff;--ok:#12a37f;--bad:#e5484d;--shadow:0 8px 32px rgba(40,60,120,.18);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#0b1226;--bg2:#1b1038;--b1:#2a62d9;--b2:#8a3fd1;--b3:#12a085;--glass:rgba(255,255,255,.08);--glass2:rgba(255,255,255,.16);--line:rgba(255,255,255,.18);--text:#eef2ff;--mute:#9aa7c7;--acc:#6a9bff;--shadow:0 8px 32px rgba(0,0,0,.4)}}
+:root[data-theme="dark"]{--bg1:#0b1226;--bg2:#1b1038;--b1:#2a62d9;--b2:#8a3fd1;--b3:#12a085;--glass:rgba(255,255,255,.08);--glass2:rgba(255,255,255,.16);--line:rgba(255,255,255,.18);--text:#eef2ff;--mute:#9aa7c7;--acc:#6a9bff;--shadow:0 8px 32px rgba(0,0,0,.4)}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100vh;font-family:'Noto Sans Lao',system-ui,sans-serif;color:var(--text);background:linear-gradient(135deg,var(--bg1),var(--bg2));background-attachment:fixed;overflow-x:hidden}
+.blob{position:fixed;border-radius:50%;filter:blur(70px);opacity:.65;z-index:0;pointer-events:none}
+.blob.a{width:380px;height:380px;background:var(--b1);top:-90px;left:-80px}
+.blob.b{width:420px;height:420px;background:var(--b2);bottom:-120px;right:-100px}
+.blob.c{width:260px;height:260px;background:var(--b3);top:40%;left:45%}
+.glass{background:var(--glass);backdrop-filter:blur(var(--bl,22px)) saturate(160%);-webkit-backdrop-filter:blur(var(--bl,22px)) saturate(160%);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.5)}
+.app{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:14px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 18px;margin-bottom:14px;flex-wrap:wrap}
+h1{font-size:19px;margin:0;font-weight:700}
+nav{display:flex;gap:6px;padding:5px;border-radius:16px;background:var(--glass)}
+nav button{border:0;background:transparent;color:var(--mute);font:inherit;font-weight:500;padding:8px 16px;border-radius:12px;cursor:pointer}
+nav button.on{background:var(--glass2);color:var(--text);box-shadow:var(--shadow)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat{padding:14px 18px}.stat small{color:var(--mute)}.stat b{display:block;font-size:20px;margin-top:2px}
+.pos{display:grid;grid-template-columns:1fr 360px;gap:14px;align-items:start}
+.panel{padding:16px}
+input,select{width:100%;padding:11px 14px;border-radius:14px;border:1px solid var(--line);background:var(--glass);color:var(--text);font:inherit;backdrop-filter:blur(10px)}
+input::placeholder{color:var(--mute)}
+select option{color:#14213d}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-top:12px}
+.item{padding:14px;cursor:pointer;display:flex;flex-direction:column;gap:6px;transition:transform .15s,background .15s}
+.item:hover{transform:translateY(-3px);background:var(--glass2)}
+.item.out{opacity:.45;pointer-events:none}
+.item h3{margin:0;font-size:15px}.item p{margin:0;font-size:12.5px;color:var(--mute);line-height:1.5}
+.price{font-weight:700;color:var(--acc);font-size:16px}
+.tag{display:inline-block;font-size:11.5px;padding:2px 9px;border-radius:99px;background:var(--glass2);border:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.cart-line{padding:10px 0;border-bottom:1px solid var(--line)}
+.qty{display:flex;align-items:center;gap:6px}
+.qty button,.x{width:28px;height:28px;border-radius:9px;border:1px solid var(--line);background:var(--glass2);color:var(--text);cursor:pointer;font:inherit}
+.x{color:var(--bad)}
+.btn{width:100%;padding:13px;border:0;border-radius:15px;font:inherit;font-weight:700;color:#fff;cursor:pointer;background:linear-gradient(135deg,#3b7bff,#8a5cff);box-shadow:0 6px 20px rgba(80,90,255,.4)}
+.btn.sec{background:var(--glass2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.fields{display:grid;gap:8px;margin:12px 0}
+.total{font-size:24px;font-weight:700}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+th{color:var(--mute);font-weight:500}
+.scroll{overflow-x:auto}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:14px}
+.hide{display:none!important}
+.modal{position:fixed;inset:0;z-index:20;background:rgba(10,15,35,.45);display:flex;align-items:center;justify-content:center;padding:16px}
+.receipt{width:100%;max-width:380px;max-height:90vh;overflow:auto;padding:22px;background:var(--glass2)}
+.receipt h2{margin:0 0 4px;text-align:center}.receipt .c{text-align:center;color:var(--mute);font-size:13px}
+.receipt hr{border:0;border-top:1px dashed var(--mute);margin:12px 0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:30;padding:11px 20px;border-radius:99px}
+@media(max-width:860px){.pos{grid-template-columns:1fr}.stats b{font-size:16px}}
+@keyframes blink{0%,100%{box-shadow:0 6px 20px rgba(80,90,255,.4);transform:scale(1)}50%{box-shadow:0 0 0 6px rgba(80,140,255,.35),0 6px 28px rgba(80,90,255,.7);transform:scale(1.03);filter:brightness(1.15)}}
+.blink{animation:blink 1.1s ease-in-out infinite}
+@media(prefers-reduced-motion:reduce){.blink{animation:none}}
+@media(min-width:861px){.app{max-width:1400px;padding:20px}.pos{grid-template-columns:1fr 400px}#sell>.panel:last-child{position:sticky;top:14px;max-height:calc(100vh - 28px);overflow:auto}.grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr))}#fb{display:none!important}nav button i{font-style:normal;margin-right:6px}}
+@media(max-width:860px){input,select{font-size:16px}.app{padding:10px 10px calc(100px + env(safe-area-inset-bottom,0px))}header.glass{backdrop-filter:none;-webkit-backdrop-filter:none;background:var(--glass2);padding:10px 14px}nav{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom,0px));z-index:15;padding:6px;border-radius:20px;justify-content:space-around;background:var(--glass2);backdrop-filter:blur(var(--bl,22px));-webkit-backdrop-filter:blur(var(--bl,22px));border:1px solid var(--line);box-shadow:var(--shadow)}nav button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11px;padding:7px 2px;min-height:48px}nav button i{font-style:normal;font-size:19px;line-height:1}#fb{position:fixed;left:14px;right:14px;bottom:calc(86px + env(safe-area-inset-bottom,0px));z-index:14;border:0;border-radius:16px;padding:14px;font:inherit;font-size:15px;color:#fff;background:linear-gradient(135deg,#3b7bff,#8a5cff);box-shadow:0 8px 24px rgba(80,90,255,.5);cursor:pointer}.toast{bottom:calc(150px + env(safe-area-inset-bottom,0px))}.x,.qty button{width:38px;height:38px}.grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}.item h3{font-size:14px}.item .row{flex-wrap:wrap;row-gap:2px}.tag{white-space:nowrap}.item small{font-size:11.5px}.price{font-size:15px}h1{font-size:17px}}
+@media(max-width:700px){table.cards,table.cards tbody,table.cards tr,table.cards td{display:block}table.cards thead{display:none}table.cards tr{margin-bottom:10px;padding:10px 12px;border:1px solid var(--line);border-radius:16px;background:var(--glass)}table.cards td{border:0;padding:4px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}table.cards td[data-l]::before{content:attr(data-l);color:var(--mute);font-size:13px}}
+@media(max-width:860px){nav{width:calc(100% - 16px);max-width:calc(100% - 16px);left:50%;transform:translateX(-50%);bottom:calc(10px + env(safe-area-inset-bottom,0px));padding:5px;border-radius:28px;display:flex;justify-content:center;gap:4px;background:linear-gradient(145deg,rgba(255,255,255,.42),rgba(255,255,255,.12) 45%,rgba(255,255,255,.26));backdrop-filter:blur(var(--bl,24px)) saturate(190%) brightness(1.08);-webkit-backdrop-filter:blur(var(--bl,24px)) saturate(190%) brightness(1.08);border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 1px rgba(255,255,255,.85),inset 0 -1px 1px rgba(255,255,255,.25),inset 0 0 18px rgba(255,255,255,.14),0 12px 34px rgba(0,0,0,.28);overflow:hidden;transition:width .35s cubic-bezier(.2,.8,.2,1),background .3s}nav::before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(120deg,transparent 30%,rgba(255,255,255,.4) 45%,transparent 60%);transform:translateX(-100%);animation:glasssheen 5s ease-in-out infinite;pointer-events:none}@keyframes glasssheen{0%,55%{transform:translateX(-100%)}100%{transform:translateX(100%)}}nav button{position:relative;z-index:1;flex:1 1 0;min-width:0;border-radius:22px;transition:background .3s,box-shadow .3s,padding .35s}nav button.on{background:rgba(255,255,255,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 14px rgba(0,0,0,.16);color:var(--text)}nav.col{width:auto;max-width:calc(100% - 16px)}nav.col button:not(.on){display:none}nav.col button.on{flex:0 0 auto;padding:9px 20px;font-size:14px;flex-direction:row;gap:8px}nav.col button.on i{font-size:17px}@media(prefers-reduced-motion:reduce){nav::before{animation:none}}}
+@media(min-width:861px){nav{background:linear-gradient(145deg,rgba(255,255,255,.4),rgba(255,255,255,.1) 50%,rgba(255,255,255,.22));backdrop-filter:blur(var(--bl,24px)) saturate(190%);-webkit-backdrop-filter:blur(var(--bl,24px)) saturate(190%);border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 1px rgba(255,255,255,.85),inset 0 -1px 1px rgba(255,255,255,.25),0 8px 24px rgba(0,0,0,.22)}nav button.on{background:rgba(255,255,255,.6);box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 4px 14px rgba(0,0,0,.16)}}
+@media(max-width:860px){nav{left:12px;right:auto;transform:none;width:calc(100% - 24px);max-width:calc(100% - 24px)}nav.col{width:auto;max-width:none}}
+:root{--gl:rgba(255,255,255,.36)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--gl:rgba(255,255,255,.1)}}
+:root[data-theme="dark"]{--gl:rgba(255,255,255,.1)}
+body .blob{opacity:.8}
+.glass{background:linear-gradient(145deg,var(--gl),rgba(255,255,255,.04) 48%,var(--gl));backdrop-filter:blur(var(--bl,24px)) saturate(185%) brightness(1.05);-webkit-backdrop-filter:blur(var(--bl,24px)) saturate(185%) brightness(1.05);border:1px solid rgba(255,255,255,.45);border-radius:28px;box-shadow:inset 0 1.5px 1px rgba(255,255,255,.85),inset 0 -1px 1px rgba(255,255,255,.2),inset 0 0 24px rgba(255,255,255,.08),0 16px 40px rgba(10,20,60,.22)}
+@media(min-width:861px){header.glass{backdrop-filter:blur(var(--bl,24px)) saturate(185%);-webkit-backdrop-filter:blur(var(--bl,24px)) saturate(185%)}}@media(max-width:860px){header.glass{backdrop-filter:none;-webkit-backdrop-filter:none}}
+.modal{background:rgba(8,12,30,.38);backdrop-filter:blur(10px) saturate(140%);-webkit-backdrop-filter:blur(10px) saturate(140%)}
+.btn{background:linear-gradient(145deg,var(--b1),var(--b2));color:var(--on);border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 1.5px 1px rgba(255,255,255,.7),inset 0 -2px 2px rgba(0,0,40,.15),0 10px 28px rgba(60,80,255,.45);text-shadow:0 1px 2px rgba(0,0,40,.25)}
+.btn.sec{background:linear-gradient(145deg,var(--gl),rgba(255,255,255,.04));color:var(--text);border:1px solid rgba(255,255,255,.45);box-shadow:inset 0 1px 1px rgba(255,255,255,.8),0 6px 18px rgba(10,20,60,.15);text-shadow:none}
+input,select{background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(255,255,255,.06));border:1px solid rgba(255,255,255,.4);box-shadow:inset 0 1px 2px rgba(0,0,0,.08),inset 0 1px 0 rgba(255,255,255,.5)}
+.x,.qty button{background:linear-gradient(145deg,rgba(255,255,255,.4),rgba(255,255,255,.1));border:1px solid rgba(255,255,255,.5);box-shadow:inset 0 1px 1px rgba(255,255,255,.8)}
+.tag{background:linear-gradient(145deg,rgba(255,255,255,.4),rgba(255,255,255,.12));border:1px solid rgba(255,255,255,.5)}
+.item:hover{transform:translateY(-4px) scale(1.01)}
+.rv{display:grid;gap:12px;margin-bottom:14px}.rv-grid{display:grid;grid-template-columns:1.1fr 1fr;gap:12px}.rv-card{padding:16px}.rv-lbl{color:var(--mute);font-size:13px}.rv-big{font-size:30px;font-weight:700;margin:4px 0 2px;line-height:1.2}.rv-up{color:var(--ok);font-weight:600}.rv-dn{color:var(--bad);font-weight:600}.bar-row{margin:9px 0}.bar-top{display:flex;justify-content:space-between;gap:8px;font-size:13px}.bar-track{height:10px;border-radius:99px;background:var(--glass2);overflow:hidden;border:1px solid var(--line);margin:5px 0}.bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--b1),var(--b2));box-shadow:inset 0 1px 1px rgba(255,255,255,.6)}.bar-sub{color:var(--mute);font-size:12px}.lg-row{display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0}.lg-dot{width:10px;height:10px;border-radius:50%;flex:none}.lg-row span.v{margin-left:auto;font-weight:600}.chart-legend{display:flex;gap:14px;font-size:12px;color:var(--mute);margin:4px 0 8px}.chart-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:middle}@media(max-width:700px){.rv-grid{grid-template-columns:1fr}.rv-big{font-size:24px}}
+#login{display:none}body.locked #login{display:flex}body.locked .app{display:none}body.staff [data-ed],body.staff [data-del],body.staff [data-im],body.staff #rep{display:none!important}
+@media(min-width:861px){
+html{font-size:14px}
+.app{max-width:1080px;padding:14px 18px}
+header.glass{padding:8px 14px;margin-bottom:10px}
+h1{font-size:16px}
+nav button{padding:6px 12px;font-size:13px}
+.stats{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.stat{padding:10px 14px}
+.stat small{font-size:12px}
+.stat b{font-size:16px}
+.pos{grid-template-columns:1fr 330px;gap:10px}
+.panel{padding:12px}
+.grid{grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:8px;margin-top:8px}
+.item{padding:10px}
+.item h3{font-size:13px}
+.item p{font-size:11.5px}
+.price{font-size:14px}
+input,select{padding:8px 11px;font-size:13px;border-radius:12px}
+.btn{padding:10px;font-size:14px;border-radius:12px}
+.total{font-size:20px}
+table{font-size:13px}
+th,td{padding:7px 6px}
+.rv-card{padding:12px}
+.rv-big{font-size:24px}
+.glass{border-radius:20px}
+.receipt{max-width:340px}
+}
+@media print{body{background:#fff}.blob,.app,.toast{display:none!important}.modal{position:static;background:none;padding:0;display:block}.receipt{background:#fff;color:#000;box-shadow:none;border:0;backdrop-filter:none;max-width:100%;max-height:none}.noprint{display:none!important}}
+</style>
+</head>
+<body class="locked">
+<div id="boot" style="position:fixed;top:14px;left:0;right:0;text-align:center;color:var(--text);font-size:14px;z-index:30;pointer-events:none">ກຳລັງໂຫຼດ...</div>
+<div id="login" class="modal"><div class="glass receipt" style="max-width:360px">
+  <div class="c"><img id="lglogo" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover"></div>
+  <h2 style="font-size:18px">ເຂົ້າສູ່ລະບົບ</h2>
+  <div id="lg-login"><div class="fields"><input id="lu" placeholder="ຊື່ເຂົ້າລະບົບ" autocomplete="username"><input id="lp" type="password" placeholder="ລະຫັດຜ່ານ" autocomplete="current-password"><button class="btn" id="lgbtn">ເຂົ້າສູ່ລະບົບ</button><button class="btn sec" id="lgnew" style="margin-top:6px">ສ້າງບັນຊີໃໝ່ (ພະນັກງານ)</button><p id="lerr" style="color:var(--bad);margin:0;font-size:13px;min-height:16px"></p><p id="lmode" style="color:var(--mute);margin:4px 0 0;font-size:12px;text-align:center"></p></div></div>
+  <div id="lg-setup" class="hide"><p class="c" style="color:var(--mute);font-size:13px">ຍັງບໍ່ມີບັນຊີ. ສ້າງບັນຊີຜູ້ດູແລຄົນທຳອິດ</p><div class="fields"><input id="su" placeholder="ຊື່ເຂົ້າລະບົບ (a-z, 0-9)"><input id="sn" placeholder="ຊື່ທີ່ສະແດງ"><input id="sp" type="password" placeholder="ລະຫັດຜ່ານ (ຢ່າງໜ້ອຍ 6 ຕົວ)"><button class="btn" id="sbtn">ສ້າງບັນຊີ ແລະ ເຂົ້າລະບົບ</button></div></div>
+</div></div>
+<div class="blob a"></div><div class="blob b"></div><div class="blob c"></div>
+<div class="app">
+<button id="fb" class="hide" type="button"></button>
+<header class="glass">
+  <h1 style="display:flex;align-items:center;gap:10px"><img id="lg" alt="" style="width:42px;height:42px;border-radius:12px;object-fit:cover"><span id="sh">iHAVEM2</span><small style="color:var(--mute);font-weight:400">POS</small></h1><button class="btn sec hide" id="out" style="cursor:pointer;color:var(--text);margin-left:auto;width:auto;padding:8px 14px;font-size:13px;min-height:36px;border-radius:14px">ອອກຈາກລະບົບ</button><span class="tag" id="sy">ກຳລັງເຊື່ອມຕໍ່...</span><span class="tag" id="rl"></span>
+  <nav id="nav"><button data-t="sell" class="on"><i>🛒</i>ຂາຍ</button><button data-t="stock"><i>📦</i>ສາງ</button><button data-t="hist"><i>🧾</i>ປະຫວັດ</button><button data-t="cus"><i>👥</i>ລູກຄ້າ</button><button data-t="rep"><i>📊</i>ລາຍງານ</button><button data-t="set"><i>⚙️</i>ຕັ້ງຄ່າ</button></nav>
+</header>
+<div class="stats">
+  <div class="glass stat"><small>ຍອດຂາຍມື້ນີ້</small><b id="s1">0 ₭</b></div>
+  <div class="glass stat"><small>ຈຳນວນບິນມື້ນີ້</small><b id="s2">0</b></div>
+  <div class="glass stat"><small>ມູນຄ່າສິນຄ້າໃນສາງ</small><b id="s3">0 ₭</b></div>
+  <div class="glass stat"><small>ກຳໄລມື້ນີ້</small><b id="s4">0 ₭</b></div>
+</div>
+
+<section id="sell" class="pos">
+  <div class="glass panel" id="mine" style="grid-column:1/-1;display:none"></div>
+  <div class="glass panel">
+    <div class="row"><input id="q" placeholder="ຄົ້ນຫາ / ສະແກນບາໂຄດ"><button class="x" id="scan" style="width:48px;height:44px;color:var(--text)" title="ສະແກນ">📷</button></div>
+    <div class="grid" id="grid"></div>
+  </div>
+  <div class="glass panel">
+    <div class="row" id="cartp" style="scroll-margin-top:10px"><b>ກະຕ່າສິນຄ້າ</b><button class="x" id="clr" title="ລ້າງກະຕ່າ">✕</button></div>
+    <div id="cart"></div>
+    <div class="fields">
+      <input id="cn" list="cl" placeholder="ຊື່ລູກຄ້າ"><datalist id="cl"></datalist>
+      <input id="cp" placeholder="ເບີໂທ" inputmode="tel">
+      <div class="form" style="margin:0"><input id="disc" type="number" min="0" placeholder="ສ່ວນຫຼຸດ (₭)"><select id="pay"><option>ເງິນສົດ</option><option>ໂອນ</option><option value="ຕິດໜີ້">ຕິດໜີ້ / ຜ່ອນ</option></select></div>
+    </div>
+    <div class="row" style="margin-bottom:8px"><input id="rcv" type="number" min="0" placeholder="ເງິນທີ່ຮັບ (₭)" style="max-width:60%"><small id="chg" style="color:var(--mute)"></small></div>
+    <div class="row" style="margin-bottom:12px"><span>ລວມທັງໝົດ</span><span class="total" id="tot">0 ₭</span></div>
+    <button class="btn" id="pay-btn" disabled>ຊຳລະເງິນ</button>
+  </div>
+</section>
+
+<section id="stock" class="glass panel hide">
+  <div class="form">
+    <input id="n" placeholder="ຊື່ລຸ້ນ (ເຊັ່ນ Dell Latitude 7490)">
+    <input id="sp" placeholder="ສະເປັກ (i5 / 8GB / SSD 256GB)">
+    <select id="gr"><option>ເກຣດ A</option><option>ເກຣດ B</option><option>ເກຣດ C</option></select>
+    <input id="pr" type="number" min="0" placeholder="ລາຄາຂາຍ (₭)"><input id="co" type="number" min="0" placeholder="ຕົ້ນທຶນ (₭)"><input id="sn" placeholder="Serial (ຖ້າມີ)"><input id="bc" placeholder="ບາໂຄດ / ລະຫັດ"><input id="im" type="file" accept="image/*" title="ຮູບສິນຄ້າ">
+    <input id="st" type="number" min="0" placeholder="ຈຳນວນ">
+    <input id="wr" type="number" min="0" placeholder="ຮັບປະກັນ (ເດືອນ)">
+    <button class="btn" id="add">ເພີ່ມສິນຄ້າ</button>
+  </div>
+  <button class="btn sec" id="shop" style="max-width:260px;margin-bottom:12px">ຕັ້ງຊື່ຮ້ານ / ເບີໂທ ເທິງບິນ</button> <button class="btn sec" id="bk" style="max-width:260px;margin-bottom:12px">ສຳຮອງຂໍ້ມູນ (JSON)</button> <button class="btn sec" id="rs" style="max-width:260px;margin-bottom:12px">ກູ້ຂໍ້ມູນຈາກໄຟລ໌</button><input id="rsf" type="file" accept=".json,application/json" hidden>
+  <div class="scroll"><table class="cards"><thead><tr><th>ສິນຄ້າ</th><th>ເກຣດ</th><th>ລາຄາ</th><th>ເຫຼືອ</th><th>ຮັບປະກັນ</th><th></th></tr></thead><tbody id="stb"></tbody></table></div>
+</section>
+
+<section id="hist" class="glass panel hide">
+  <div class="scroll"><table class="cards"><thead><tr><th>ເລກບິນ</th><th>ວັນທີ</th><th>ລູກຄ້າ</th><th>ພະນັກງານ</th><th>ລວມ</th><th>ຊຳລະ</th><th></th></tr></thead><tbody id="hb"></tbody></table></div>
+  <input id="hq" placeholder="ຄົ້ນຫາບິນ: ເລກບິນ, ຊື່, ເບີໂທ, Serial" style="margin-bottom:10px"><p id="rp"></p>
+  <button class="btn sec" id="ex" style="max-width:220px;margin-top:12px">ສົ່ງອອກ CSV</button>
+  <p id="he" style="color:var(--mute)" class="hide">ຍັງບໍ່ມີການຂາຍ. ເລືອກສິນຄ້າໃນໜ້າ “ຂາຍ” ເພື່ອເລີ່ມບິນທຳອິດ.</p>
+</section>
+</div>
+
+<section id="cus" class="glass panel hide">
+  <input id="cq" placeholder="ຄົ້ນຫາລູກຄ້າ: ຊື່, ເບີໂທ" style="margin-bottom:10px">
+  <div class="scroll"><table class="cards"><thead><tr><th>ລູກຄ້າ</th><th>ບິນ</th><th>ຍອດລວມ</th><th>ໜີ້ຄ້າງ</th><th></th></tr></thead><tbody id="cb"></tbody></table></div>
+</section>
+<section id="rep" class="glass panel hide">
+  <div class="form"><select id="rpd"><option value="0">ມື້ນີ້</option><option value="7">7 ມື້ຫຼ້າສຸດ</option><option value="30" selected>30 ມື້ຫຼ້າສຸດ</option><option value="m">ເດືອນນີ້</option><option value="y">ປີນີ້</option><option value="c">ກຳນົດເອງ</option></select><input id="rf" type="date"><input id="rt" type="date"></div>
+  <div class="rv" id="rv"></div>
+  <div class="stats" id="rk"></div>
+  <h3>ຍອດຂາຍລາຍວັນ</h3><div id="rch" class="scroll"></div>
+  <h3>ສິນຄ້າຂາຍດີ</h3><div class="scroll"><table><thead><tr><th>ສິນຄ້າ</th><th>ຈຳນວນ</th><th>ຍອດຂາຍ</th><th>ກຳໄລ</th></tr></thead><tbody id="rtp"></tbody></table></div>
+  <h3>ສະຫຼຸບຍອດ</h3><div class="scroll"><table><tbody id="rpm"></tbody></table></div>
+  <h3>ລາຍຈ່າຍ</h3><div class="form"><input id="en" placeholder="ລາຍການ (ຄ່າເຊົ່າ, ໄຟຟ້າ...)"><input id="ea" type="number" min="0" placeholder="ຈຳນວນເງິນ (₭)"><button class="btn" id="eadd">ເພີ່ມລາຍຈ່າຍ</button></div>
+  <div class="scroll"><table><tbody id="rex"></tbody></table></div>
+  <h3>ສາງ</h3><div id="rst" style="color:var(--mute);line-height:1.8"></div>
+  <button class="btn sec" id="rcsv" style="max-width:240px;margin-top:12px">ສົ່ງອອກລາຍງານ CSV</button>
+</section>
+<section id="set" class="glass panel hide">
+  <h3 style="margin-top:0">ຕັ້ງຄ່າຮ້ານ</h3>
+  <div class="form"><input id="sn1" placeholder="ຊື່ຮ້ານ"><input id="sn2" placeholder="ຄຳຂວັນ (ເທິງບິນ)"><input id="sn3" placeholder="ເບີໂທ"><input id="sn4" placeholder="ທີ່ຢູ່"><input id="sn5" placeholder="ຂໍ້ຄວາມທ້າຍບິນ"><input id="sn6" type="number" min="0" placeholder="ແຈ້ງເຕືອນສາງໜ້ອຍ (≤ ເຄື່ອງ)"></div>
+  <h3>ໂລໂກ້</h3>
+  <div class="row" style="justify-content:flex-start;gap:12px;flex-wrap:wrap"><img id="lgp" alt="" style="width:72px;height:72px;border-radius:16px;object-fit:cover"><input id="lgf" type="file" accept="image/*" style="max-width:260px"><button class="btn sec" id="lgr" style="max-width:170px">ໃຊ້ໂລໂກ້ເດີມ</button></div>
+  <h3>ຮູບແບບ (Theme)</h3>
+  <div id="th" class="row" style="justify-content:flex-start;flex-wrap:wrap"></div>
+  <div class="form" style="margin-top:12px"><select id="tm"><option value="dark">ມືດ</option><option value="light">ສະຫວ່າງ</option><option value="auto">ຕາມລະບົບ</option></select><label style="display:flex;flex-direction:column;font-size:13px;color:var(--mute)">ຄວາມເບລີ glass<input id="tb" type="range" min="6" max="40"></label></div>
+  <button class="btn" id="ssv" style="max-width:260px;margin-top:8px">ບັນທຶກການຕັ້ງຄ່າ</button>
+<h3>ຜູ້ໃຊ້ງານ</h3>
+  <div class="form"><input id="uu" placeholder="UID ຂອງຜູ້ໃຊ້"><input id="un2" placeholder="ຊື່ທີ່ສະແດງ"><select id="ur"><option value="staff">ພະນັກງານ</option><option value="admin">ຜູ້ດູແລ</option></select><input id="up" type="password" placeholder="ລະຫັດຜ່ານ (ໃສ່ເພື່ອຕັ້ງ/ປ່ຽນ)"></div>
+  <button class="btn" id="uadd" style="max-width:260px">ເພີ່ມ / ແກ້ໄຂຜູ້ໃຊ້</button>
+  <div class="scroll" style="margin-top:10px"><table><tbody id="ulist"></tbody></table></div>
+</section>
+<input id="imf" type="file" accept="image/*" hidden>
+<div class="modal hide" id="m"><div class="glass receipt" id="rc"></div></div>
+<div class="glass toast hide" id="t"></div>
+
+<script type="text/plain" id="app-src">
+const SB_URL='https://ylgyfguvcarpetlocgml.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlsZ3lmZ3V2Y2FycGV0bG9jZ21sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIzMDA3OTQsImV4cCI6MjEwNzg3Njc5NH0.r8FBH2a_b_WbmzH0wZZvqo9DMAAif32HoUmsauoNRsk';
+const SB=supabase.createClient(SB_URL,SB_KEY);
+let __resolveAuth;const __authReady=new Promise(r=>__resolveAuth=r);
+const mapErr=e=>{const m=(e&&e.message)||'';if(/invalid login/i.test(m))return{code:'invalid-credential'};if(/already.*registered|already been registered/i.test(m))return{code:'email-already-in-use'};if(/at least|weak|password should/i.test(m))return{code:'weak-password'};if(/valid email|invalid.*email/i.test(m))return{code:'invalid-email'};if(/rate limit|too many/i.test(m))return{code:'too-many-requests'};return{code:m}};
+let __lastUid=undefined;
+const FAUTH={
+ onAuthStateChanged(cb){
+   const emit=s=>{const uid=s?s.user.id:null;if(uid===__lastUid)return;__lastUid=uid;cb(s?{uid,email:s.user.email}:null)};
+   SB.auth.getSession().then(r=>emit(r.data.session));
+   SB.auth.onAuthStateChange((ev,s)=>{if(ev==='SIGNED_OUT'){__lastUid=undefined;__lastUid=null;cb(null);return}if(s)emit(s)});
+ },
+ async signInWithEmailAndPassword(e,p){const r=await SB.auth.signInWithPassword({email:e,password:p});if(r.error)throw mapErr(r.error)},
+ async createUserWithEmailAndPassword(e,p){const r=await SB.auth.signUp({email:e,password:p});if(r.error)throw mapErr(r.error)},
+ async signOut(){await SB.auth.signOut()}
+};
+const dGet=async(c,id)=>{
+ if(c==='users'){const r=await SB.from('profiles').select('id,email,name,role').eq('id',id).maybeSingle();if(r.error)throw r.error;const d=r.data;return d?{uid:d.id,email:d.email,name:d.name,role:d.role}:null}
+ const r=await SB.from('docs').select('data').eq('coll',c).eq('id',id).maybeSingle();if(r.error)throw r.error;return r.data?r.data.data:null
+};
+const dSet=async(c,id,obj)=>{
+ if(c==='users'){const r=await SB.from('profiles').upsert({id,email:obj.email??null,name:obj.name??null,role:obj.role??'pending'});if(r.error)throw r.error;return}
+ const r=await SB.from('docs').upsert({coll:c,id,data:obj,updated_at:new Date().toISOString()});if(r.error)throw r.error
+};
+const dUpdate=async(c,id,patch)=>{
+ if(c==='users'){const r=await SB.from('profiles').update(patch).eq('id',id);if(r.error)throw r.error;return}
+ const cur=(await dGet(c,id))||{};await dSet(c,id,{...cur,...patch})
+};
+const dDelete=async(c,id)=>{
+ const r=c==='users'?await SB.from('profiles').delete().eq('id',id):await SB.from('docs').delete().eq('coll',c).eq('id',id);
+ if(r.error)throw r.error
+};
+const dList=async c=>{
+ if(c==='users'){const r=await SB.from('profiles').select('id,email,name,role');if(r.error)throw r.error;return (r.data||[]).map(d=>({id:d.id,data:{uid:d.id,email:d.email,name:d.name,role:d.role}}))}
+ const r=await SB.from('docs').select('id,data').eq('coll',c);if(r.error)throw r.error;return (r.data||[]).map(d=>({id:d.id,data:d.data}))
+};
+const watch=(c,fn)=>{
+ const o={event:'*',schema:'public',table:c==='users'?'profiles':'docs'};
+ if(c!=='users')o.filter='coll=eq.'+c;
+ SB.channel('w-'+c+'-'+Math.random().toString(36).slice(2)).on('postgres_changes',o,()=>fn()).subscribe()
+};
+const FDB={
+ collection:c=>({onSnapshot:(cb,err)=>{const load=async()=>{try{const rows=await dList(c);cb({docs:rows.map(r=>({id:r.id,data:()=>r.data}))})}catch(e){if(err)err(e)}};load();watch(c,load)}}),
+ doc:path=>{const i=path.indexOf('/'),c=path.slice(0,i),id=path.slice(i+1);return{
+   get:async()=>{const d=await dGet(c,id);return{exists:d!=null,data:()=>d}},
+   set:d=>dSet(c,id,d),
+   update:p=>dUpdate(c,id,p),
+   delete:()=>dDelete(c,id),
+   onSnapshot:(cb,err)=>{const load=async()=>{try{const d=await dGet(c,id);cb({exists:d!=null,data:()=>d})}catch(e){if(err)err(e)}};load();watch(c,load)}
+ }}
+};
+const claude={use:async n=>{
+ if(n==='db'){await __authReady;return FDB}
+ if(n==='downloads')return{save:async r=>{const t=r.filename.endsWith('.pdf')?'application/pdf':r.filename.endsWith('.csv')?'text/csv;charset=utf-8':'application/json';const b=r.data instanceof Blob?r.data:new Blob([r.data],{type:t});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=r.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}};
+ return null}};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const profit=s=>s.total-s.lines.reduce((a,l)=>a+(l.cost||0)*l.q,0);
+const fmt=n=>Number(n||0).toLocaleString('en-US')+' ₭';
+const seed=[
+ {id:1,name:'Dell Latitude 7490',spec:'i5-8350U / 8GB / SSD 256GB',grade:'ເກຣດ A',price:3200000,stock:5,warranty:3},
+ {id:2,name:'HP EliteBook 840 G5',spec:'i7-8550U / 16GB / SSD 512GB',grade:'ເກຣດ A',price:4500000,stock:3,warranty:3},
+ {id:3,name:'Lenovo ThinkPad T480',spec:'i5-8250U / 8GB / SSD 256GB',grade:'ເກຣດ B',price:3000000,stock:4,warranty:2},
+ {id:4,name:'Dell OptiPlex 7050 SFF',spec:'i5-7500 / 8GB / HDD 500GB',grade:'ເກຣດ B',price:1800000,stock:6,warranty:2},
+ {id:5,name:'Monitor Dell 24" P2419H',spec:'1080p IPS / HDMI',grade:'ເກຣດ A',price:900000,stock:8,warranty:1},
+ {id:6,name:'MacBook Air 2017',spec:'i5 / 8GB / SSD 128GB',grade:'ເກຣດ C',price:2700000,stock:1,warranty:1}];
+let P=[],PR=[],ST={},S=[],cart={},db=null,ADMIN=true,OWN=true,UN=false,ME='';let SHOP={name:'iHAVEM2',tag:'SECOND HAND COMPUTERS',tel:'',addr:'',foot:'',low:2};
+const mergeP=()=>{P=PR.map(p=>({...p,stock:ST[p.id]!=null?ST[p.id]:p.stock}));Object.keys(cart).forEach(k=>{if(!P.find(p=>p.id==k))delete cart[k]});all()};
+async function refreshDB(){if(!db||!SESS)return;try{const pr=await dList('products');PR=pr.map(r=>r.data);const st=await dList('stock');ST={};st.forEach(r=>{ST[r.id]=r.data.n});mergeP()}catch(e){console.warn('refresh',e)}}
+setInterval(()=>{if(SESS&&db)refreshDB()},8000);
+const role=()=>{ADMIN=OWN||UN;$('#rl').textContent=ADMIN?'ຜູ້ດູແລ':'ຝ່າຍຂາຍ'+(ME?' · '+ME:'');document.querySelectorAll('#nav button').forEach(b=>{if(b.dataset.t!='sell')b.classList.toggle('hide',!ADMIN)});document.querySelector('.stats').classList.toggle('hide',!ADMIN);if(!ADMIN)document.querySelector('#nav [data-t=sell]').click()};
+const LS=()=>{try{const a=JSON.parse(localStorage.getItem('pos_p'));if(a)P=a;S=JSON.parse(localStorage.getItem('pos_s'))||[]}catch(e){}};
+const save=()=>{try{localStorage.setItem('pos_p',JSON.stringify(P));localStorage.setItem('pos_s',JSON.stringify(S))}catch(e){}};
+const fail=()=>toast('ບັນທຶກບໍ່ສຳເລັດ. ກວດການເຊື່ອມຕໍ່ ຫຼື ສິດໃນການແກ້ໄຂ');
+const putP=async p=>{if(!db){const i=P.findIndex(x=>x.id==p.id);i<0?P.push(p):P[i]=p;save();all();return}try{await db.doc('products/'+p.id).set(p);await db.doc('stock/'+p.id).set({n:p.stock||0});await refreshDB();toast('ບັນທຶກສິນຄ້າແລ້ວ')}catch(e){toast('ບັນທຶກບໍ່ສຳເລັດ: '+(e&&(e.message||e.code))||'ກວດການເຊື່ອມຕໍ່')}};
+const delP=async id=>{if(!db){P=P.filter(p=>p.id!=id);save();all();return}try{await db.doc('products/'+id).delete();await db.doc('stock/'+id).delete()}catch(e){fail()}};
+const setStock=async(p,n)=>{if(!db)return putP({...p,stock:n});try{await db.doc('stock/'+p.id).set({n})}catch(e){fail()}};
+const putS=async s=>{if(!db){const i=S.findIndex(x=>x.no==s.no);i<0?S.push(s):S[i]=s;save();return}try{await db.doc('sales/'+s.no).set(s)}catch(e){fail()}};
+function toast(m){const t=$('#t');t.textContent=m;t.classList.remove('hide');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.add('hide'),2200)}
+const sub=()=>Object.entries(cart).reduce((a,[id,q])=>a+P.find(p=>p.id==id).price*q,0);
+const total=()=>Math.max(0,sub()-(+$('#disc').value||0));
+
+function stats(){
+ const d=new Date().toDateString(),td=S.filter(s=>!s.void&&new Date(s.date).toDateString()==d);
+ $('#s1').textContent=fmt(td.reduce((a,s)=>a+s.total,0));$('#s2').textContent=td.length;$('#s4').textContent=fmt(td.reduce((a,s)=>a+profit(s),0));
+ $('#s3').textContent=fmt(P.reduce((a,p)=>a+p.price*p.stock,0));
+}
+function grid(){
+ const q=$('#q').value.toLowerCase();
+ $('#grid').innerHTML=P.filter(p=>(p.name+p.spec+p.grade+(p.code||'')+(p.sn||'')).toLowerCase().includes(q)).map(p=>`
+ <div class="glass item ${p.stock<1?'out':''}" data-id="${p.id}">
+  ${p.img?'<img src="'+p.img+'" alt="" style="width:100%;height:130px;object-fit:cover;border-radius:14px">':''}<div class="row"><span class="tag">${esc(p.grade)}</span><small>${p.stock<1?'ໝົດ':(p.stock<=LOWN()?'⚠ ':'')+'ເຫຼືອ '+p.stock+' ເຄື່ອງ'}</small></div>
+  <h3>${esc(p.name)}</h3><p>${esc(p.spec)}${p.sn?' · SN: '+esc(p.sn):''}</p>
+  <div class="row"><span class="price">${fmt(p.price)}</span><small>ຮັບປະກັນ ${p.warranty} ເດືອນ</small></div></div>`).join('')||(P.length?'<p>ບໍ່ພົບສິນຄ້າ. ລອງຄົ້ນຫາດ້ວຍຄຳອື່ນ.</p>':'<div><p>ຍັງບໍ່ມີສິນຄ້າ. ເພີ່ມໃນແຖບ “ສາງສິນຄ້າ” ຫຼື ລອງໃຊ້ຂໍ້ມູນຕົວຢ່າງ.</p><button class="btn" style="max-width:240px" id="smp">ໃສ່ສິນຄ້າຕົວຢ່າງ</button></div>');
+}
+function drawCart(){
+ const e=Object.entries(cart);
+ $('#cart').innerHTML=e.length?e.map(([id,q])=>{const p=P.find(x=>x.id==id);return `<div class="cart-line"><div class="row"><b>${esc(p.name)}</b><button class="x" data-rm="${id}">✕</button></div>
+ <div class="row"><div class="qty"><button data-m="${id}">−</button><span>${q}</span><button data-p="${id}">+</button></div><span>${fmt(p.price*q)}</span></div></div>`}).join(''):'<p style="color:var(--mute)">ກະຕ່າຫວ່າງ. ແຕະສິນຄ້າເພື່ອເພີ່ມ.</p>';
+ $('#tot').textContent=fmt(total());{const r=+$('#rcv').value||0;$('#chg').textContent=r?(r<total()?'ຄ້າງ ':'ເງິນທອນ ')+fmt(Math.abs(r-total())):''}$('#pay-btn').disabled=!e.length;fab()
+}
+function stockTab(){
+ $('#stb').innerHTML=P.map(p=>`<tr><td>${p.img?'<img src="'+p.img+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:10px;float:left;margin-right:8px">':''}<b>${esc(p.name)}</b><br><small style="color:var(--mute)">${esc(p.spec)}</small></td><td data-l="ເກຣດ">${esc(p.grade)}</td><td data-l="ລາຄາ">${fmt(p.price)}</td><td data-l="ເຫຼືອ" style="${p.stock<=LOWN()?'color:var(--bad);font-weight:700':''}">${p.stock}</td><td data-l="ຮັບປະກັນ">${p.warranty} ເດືອນ</td><td><button class="x" data-im="${p.id}" title="ຮູບ">📷</button> <button class="x" data-ed="${p.id}" title="ແກ້ລາຄາ">✎</button> <button class="x" data-rs="${p.id}" title="ເພີ່ມສາງ" style="color:var(--ok)">+</button> <button class="x" data-del="${p.id}" title="ລຶບ">✕</button></td></tr>`).join('');
+}
+function hist(){const n=new Date(),mo=S.filter(s=>{const d=new Date(s.date);return !s.void&&d.getMonth()==n.getMonth()&&d.getFullYear()==n.getFullYear()});$('#rp').textContent='ເດືອນນີ້: '+mo.length+' ບິນ · '+fmt(mo.reduce((a,s)=>a+s.total,0))+' · ກຳໄລ '+fmt(mo.reduce((a,s)=>a+profit(s),0));
+ $('#he').classList.toggle('hide',S.length>0);
+ $('#hb').innerHTML=S.slice().reverse().filter(s=>{const q=$('#hq').value.toLowerCase();return !q||(s.no+(s.cust||'')+(s.phone||'')+s.lines.map(l=>l.name+(l.sn||'')).join(' ')).toLowerCase().includes(q)}).map(s=>`<tr style="${s.void?'opacity:.5':''}"><td>${esc(s.no)}${s.void?' (ຍົກເລີກ)':''}</td><td data-l="ວັນທີ">${new Date(s.date).toLocaleString('en-GB')}</td><td data-l="ລູກຄ້າ">${esc(s.cust||'-')}</td><td data-l="ພະນັກງານ">${esc(s.by||'-')}</td><td data-l="ລວມ">${fmt(s.total)}</td><td data-l="ຊຳລະ">${esc(s.pay)}</td><td><button class="x" data-v="${esc(s.no)}" style="color:var(--acc)">🧾</button> ${s.void?'':'<button class="x" data-vd="'+esc(s.no)+'">⛔</button>'}</td></tr>`).join('');
+}
+function all(){stats();grid();drawCart();stockTab();hist();report2();cust();mine();applyPerm();ulist()}
+function mine(){const el=$('#mine');if(!el)return;if(!ME){el.style.display='';el.innerHTML='<div class="row"><b>ຍອດຂາຍຂອງຂ້ອຍ</b></div><p style="color:var(--mute);margin:8px 0 0">ຍັງບໍ່ໄດ້ຕັ້ງຊື່ຜູ້ໃຊ້ໃນບັນຊີນີ້. ໃຫ້ຜູ້ດູແລແຈ້ງເພື່ອເບິ່ງຍອດຂອງທ່ານ.</p>';return}
+  const n=new Date(),today=S.filter(s=>!s.void&&s.by==ME&&new Date(s.date).toDateString()==n.toDateString()),tot=today.reduce((a,s)=>a+s.total,0);
+  const list=today.slice().reverse().slice(0,6).map(s=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(s.no)} · ${new Date(s.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span><span>${fmt(s.total)} <button class="x" data-mv="${esc(s.no)}" title="ໃບເສັດ">🧾</button></span></div>`).join('');
+  el.style.display='';el.innerHTML=`<div class="row"><b>ຍອດຂາຍຂອງຂ້ອຍມື້ນີ້</b><span>${today.length} ບິນ · ${fmt(tot)}</span></div>${list||'<p style="color:var(--mute);margin:8px 0 0">ຍັງບໍ່ມີບິນມື້ນີ້</p>'}`}
+$('#mine').onclick=e=>{const v=e.target.dataset.mv;if(v)receipt(S.find(s=>s.no==v))};
+let USERS=[],SESS=null;
+function applyPerm(){const st=!ADMIN;document.body.classList.toggle('staff',st);document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('hide',st&&!['sell','stock','cus'].includes(b.dataset.t)))}
+function ulist(){const el=$('#ulist');if(!el)return;const adm=!!(SESS&&SESS.role=='admin');el.innerHTML=USERS.map(u=>`<tr><td><b>${esc(u.name||'-')}</b><br><small style="color:var(--mute)">${esc(u.email||'')}</small><br><small style="color:var(--mute)">UID: ${esc(u.uid)}</small></td><td>${u.role=='admin'?'ຜູ້ດູແລ':u.role=='staff'?'ພະນັກງານ':'ລໍຖ້າອະນຸມັດ'}</td><td style="white-space:nowrap">${adm&&u.role=='pending'?`<button class="btn" data-ap="${esc(u.uid)}" style="padding:6px 10px;font-size:12px;max-width:none">ອະນຸມັດ</button> `:''}${adm?`<button class="x" data-pw="${esc(u.uid)}" title="ປ່ຽນລະຫັດ">🔑</button> <button class="x" data-ud="${esc(u.uid)}" title="ລຶບ">✕</button>`:''}</td></tr>`).join('')||'<tr><td style="color:var(--mute)">ຍັງບໍ່ມີຜູ້ໃຊ້</td></tr>'}
+function lgShow(){if(SESS)return;$('#lglogo').src=LOGO;$('#lg-login').classList.remove('hide');$('#lg-setup').classList.add('hide');$('#lu').placeholder='ອີເມວ';$('#lmode').textContent='ເຂົ້າສູ່ລະບົບດ້ວຍອີເມວ ແລະ ລະຫັດຜ່ານ'}
+function lgEnter(s){SESS=s;ME=s.name;OWN=s.role=='admin';UN=false;document.body.classList.remove('locked');$('#login').classList.add('hide');$('#out').classList.remove('hide');$('#lp').value='';$('#lerr').textContent='';role();applyPerm();all()}
+function errMsg(e){const c=(e&&e.code)||'';if(/wrong-password|user-not-found|invalid-credential|invalid-login/.test(c))return 'ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ';if(c.includes('invalid-email'))return 'ຮູບແບບອີເມວບໍ່ຖືກຕ້ອງ';if(c.includes('weak-password'))return 'ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ 6 ຕົວ';if(c.includes('email-already-in-use'))return 'ອີເມວນີ້ມີບັນຊີແລ້ວ ໃຫ້ເຂົ້າສູ່ລະບົບແທນ';if(c.includes('too-many-requests'))return 'ພະຍາຍາມຫຼາຍເກີນໄປ ກະລຸນາລອງໃໝ່ພາຍຫຼັງ';return 'ເກີດຂໍ້ຜິດພາດ: '+c}
+async function lgLogin(){const em=$('#lu').value.trim(),pw=$('#lp').value;$('#lerr').textContent='';try{await FAUTH.signInWithEmailAndPassword(em,pw)}catch(e){$('#lerr').textContent=errMsg(e)}}
+async function lgSignup(){const em=$('#lu').value.trim(),pw=$('#lp').value;$('#lerr').textContent='';try{await FAUTH.createUserWithEmailAndPassword(em,pw)}catch(e){$('#lerr').textContent=errMsg(e)}}
+async function onAuth(user){
+ if(!user){SESS=null;document.body.classList.add('locked');$('#login').classList.remove('hide');$('#out').classList.add('hide');lgShow();return}
+ const ref=FDB.doc('users/'+user.uid);let snap=await ref.get();
+ if(!snap.exists){await ref.set({uid:user.uid,email:user.email||'',name:(user.email||'').split('@')[0],role:'pending',createdAt:new Date().toISOString()});snap=await ref.get()}
+ const d=snap.data();
+ if(d.role!='admin'&&d.role!='staff'){$('#lerr').textContent='ບັນຊີນີ້ລໍຖ້າການອະນຸມັດຈາກຜູ້ດູແລ. ສົ່ງ UID ນີ້ໃຫ້ຜູ້ດູແລ: '+user.uid;await FAUTH.signOut();return}
+ lgEnter({id:user.uid,name:d.name||user.email,role:d.role,email:user.email});
+ FDB.collection('users').onSnapshot(s=>{USERS=s.docs.map(x=>({uid:x.id,...x.data()}));ulist()},()=>{});
+ __resolveAuth();
+}
+FAUTH.onAuthStateChanged(onAuth);
+function lgOut(){FAUTH.signOut().then(()=>location.reload())}
+async function usrAdd(){if(!SESS||SESS.role!='admin')return;const uid=$('#uu').value.trim(),rl=$('#ur').value,nm=$('#un2').value.trim();if(!uid)return toast('ໃສ່ UID ຂອງຜູ້ໃຊ້ກ່ອນ');try{const upd={role:rl};if(nm)upd.name=nm;await FDB.doc('users/'+uid).update(upd);$('#uu').value=$('#un2').value='';toast('ບັນທຶກແລ້ວ')}catch(e){fail()}}
+async function usrDel(id){if(!SESS||SESS.role!='admin')return;if(id==SESS.id)return toast('ລຶບບັນຊີຕົນເອງບໍ່ໄດ້');if(!await yes('ລຶບຜູ້ໃຊ້ນີ້ອອກຈາກລະບົບ?'))return;try{await FDB.doc('users/'+id).delete()}catch(e){fail()}}
+$('#lgbtn').onclick=lgLogin;$('#lp').onkeydown=e=>{if(e.key=='Enter')lgLogin()};$('#lgnew').onclick=lgSignup;$('#uadd').onclick=usrAdd;$('#ulist').onclick=async e=>{const d=e.target.dataset;
+ if(d.ud){usrDel(d.ud);return}
+ if(d.ap){try{await FDB.doc('users/'+d.ap).update({role:'staff'});toast('ອະນຸມັດເປັນພະນັກງານແລ້ວ')}catch(x){fail()}return}
+ if(d.pw){const pw=await ask('ລະຫັດຜ່ານໃໝ່ (ຢ່າງໜ້ອຍ 6 ຕົວ)','ລະຫັດໃໝ່',1);if(!pw)return;if(pw.length<6)return toast('ຢ່າງໜ້ອຍ 6 ຕົວ');
+   const s=await SB.auth.getSession();const tok=s.data.session&&s.data.session.access_token;
+   try{const r=await fetch(SB_URL+'/functions/v1/admin-set-password',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+tok,apikey:SB_KEY},body:JSON.stringify({uid:d.pw,password:pw})});const j=await r.json().catch(()=>({}));
+     if(!r.ok)return toast('ບໍ່ສຳເລັດ: '+(j.error||r.status));toast('ປ່ຽນລະຫັດແລ້ວ')}catch(x){toast('ເຊື່ອມຕໍ່ເຊີບເວີບໍ່ໄດ້')}}
+};$('#out').onclick=lgOut;$('#up').classList.add('hide');
+function report2(){
+  report();
+  const [a,b]=range(),len=b-a,DY=864e5,pa=new Date(a.getTime()-len);
+  const ss=S.filter(s=>!s.void&&inR(s.date,a,b)),ps=S.filter(s=>!s.void&&inR(s.date,pa,a));
+  const sm=(r,f)=>r.reduce((x,y)=>x+f(y),0);
+  const tot=sm(ss,s=>s.total),ptot=sm(ps,s=>s.total),pf=sm(ss,profit);
+  const ch=ptot?Math.round((tot-ptot)/ptot*100):null;
+  const short=v=>v>=1e6?(v/1e6).toFixed(1)+'M':v>=1e3?Math.round(v/1e3)+'K':String(Math.round(v));
+  const hero=`<div class="glass rv-card">
+    <div class="rv-lbl">ຍອດຂາຍ</div>
+    <div class="rv-big">${fmt(tot)}</div>
+    <div>${ch===null?'<span class="rv-lbl">ບໍ່ມີຂໍ້ມູນໄລຍະກ່ອນໜ້າ</span>':`<span class="${ch>=0?'rv-up':'rv-dn'}">${ch>=0?'▲':'▼'} ${Math.abs(ch)}%</span> <span class="rv-lbl">ທຽບກັບໄລຍະກ່ອນໜ້າ (${fmt(ptot)})</span>`}</div>
+    <div class="rv-lbl" style="margin-top:8px">ກຳໄລຂັ້ນຕົ້ນ ${fmt(pf)} · ອັດຕາ ${tot?Math.round(pf/tot*100):0}%</div>
+  </div>`;
+  const pg={};ss.forEach(s=>{pg[s.pay]=(pg[s.pay]||0)+s.total});
+  const cols=['#5aa9ff','#8a5cff','#ff9f43','#5ee0c2','#ff6b8b'];
+  const C=2*Math.PI*52;let off=0;
+  const ents=Object.entries(pg);
+  const arcs=ents.map(([k,v],i)=>{const l=tot?v/tot*C:0;const s=`<circle r="52" cx="70" cy="70" fill="none" stroke="${cols[i%cols.length]}" stroke-width="18" stroke-dasharray="${l.toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 70 70)"><title>${esc(k)}: ${fmt(v)}</title></circle>`;off+=l;return s}).join('');
+  const legend=ents.map(([k,v],i)=>`<div class="lg-row"><i class="lg-dot" style="background:${cols[i%cols.length]}"></i>${esc(k)}<span class="v">${tot?Math.round(v/tot*100):0}%</span></div>`).join('')||'<div class="rv-lbl">ຍັງບໍ່ມີຂໍ້ມູນ</div>';
+  const donut=`<div class="glass rv-card"><div class="rv-lbl" style="margin-bottom:6px">ວິທີຊຳລະ</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><svg viewBox="0 0 140 140" width="130" height="130" role="img" aria-label="payment"><circle r="52" cx="70" cy="70" fill="none" stroke="var(--glass2)" stroke-width="18"/>${arcs}<text x="70" y="68" text-anchor="middle" font-size="16" font-weight="700" fill="var(--text)">${ss.length}</text><text x="70" y="84" text-anchor="middle" font-size="10" fill="var(--mute)">ບິນ</text></svg><div style="flex:1;min-width:120px">${legend}</div></div></div>`;
+  const pm={};ss.forEach(s=>s.lines.forEach(l=>{const o=pm[l.name]||(pm[l.name]={q:0,r:0,p:0});o.q+=l.q;o.r+=l.price*l.q;o.p+=(l.price-(l.cost||0))*l.q}));
+  const top=Object.entries(pm).sort((x,y)=>y[1].r-x[1].r).slice(0,8),mxr=top.length?top[0][1].r:1;
+  const bars=top.map(([n,o])=>`<div class="bar-row"><div class="bar-top"><b>${esc(n)}</b><span>${fmt(o.r)}</span></div><div class="bar-track"><div class="bar-fill" style="width:${Math.max(3,o.r/mxr*100).toFixed(1)}%"></div></div><div class="bar-sub">ຂາຍ ${o.q} ເຄື່ອງ · ກຳໄລ ${fmt(o.p)}</div></div>`).join('')||'<div class="rv-lbl">ຍັງບໍ່ມີຂໍ້ມູນໃນເວລານີ້</div>';
+  $('#rv').innerHTML=hero+`<div class="rv-grid">${donut}<div class="glass rv-card"><div class="rv-lbl" style="margin-bottom:4px">ສິນຄ້າຂາຍດີ</div>${bars}</div></div>`;
+  $('#rtp').closest('.scroll').style.display='none';
+  const ks=[];for(let d=new Date(a);d<b&&ks.length<92;d=new Date(d.getTime()+DY))ks.push(key(d));
+  const n=ks.length||1,W=640,H=260,L=50,R=12,T=16,Bm=30,IW=W-L-R,IH=H-T-Bm;
+  const ms={},mp={};ss.forEach(s=>{const q=key(s.date);ms[q]=(ms[q]||0)+s.total;mp[q]=(mp[q]||0)+profit(s)});
+  const mx=Math.max(1,...ks.map(q=>ms[q]||0));
+  const X=i=>L+(n>1?i/(n-1):0.5)*IW,Y=v=>T+IH-Math.max(0,v)/mx*IH;
+  const sp=ks.map((q,i)=>[X(i),Y(ms[q]||0)]),pp=ks.map((q,i)=>[X(i),Y(mp[q]||0)]);
+  const path=p=>p.map((c,i)=>(i?'L':'M')+c[0].toFixed(1)+' '+c[1].toFixed(1)).join(' ');
+  const area=sp.length?path(sp)+` L${X(n-1).toFixed(1)} ${T+IH} L${X(0).toFixed(1)} ${T+IH} Z`:'';
+  const grid=[0,1,2,3,4].map(k=>{const v=mx*k/4,y=Y(v);return `<line x1="${L}" x2="${W-R}" y1="${y.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)" stroke-dasharray="3 4"/><text x="${L-8}" y="${(y+4).toFixed(1)}" text-anchor="end" font-size="10" fill="var(--mute)">${short(v)}</text>`}).join('');
+  const step=Math.max(1,Math.ceil(n/6));
+  const xl=ks.map((q,i)=>i%step==0?`<text x="${X(i).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--mute)">${q.slice(5)}</text>`:'').join('');
+  const dots=n<=31?sp.map((c,i)=>`<circle cx="${c[0].toFixed(1)}" cy="${c[1].toFixed(1)}" r="4" fill="var(--acc)" stroke="#fff" stroke-width="1.5"><title>${ks[i]}: ${fmt(ms[ks[i]]||0)} · ກຳໄລ ${fmt(mp[ks[i]]||0)}</title></circle>`).join(''):'';
+  $('#rch').innerHTML=`<div class="chart-legend"><span><i style="background:var(--acc)"></i>ຍອດຂາຍ</span><span><i style="background:#5ee0c2"></i>ກຳໄລ</span></div>`+
+    `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto" role="img" aria-label="sales chart"><defs><linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--acc)" stop-opacity=".45"/><stop offset="100%" stop-color="var(--acc)" stop-opacity="0"/></linearGradient></defs>${grid}${area?`<path d="${area}" fill="url(#gA)"/>`:''}${sp.length?`<path d="${path(sp)}" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>`:''}${pp.length?`<path d="${path(pp)}" fill="none" stroke="#5ee0c2" stroke-width="2" stroke-dasharray="5 4" stroke-linecap="round"/>`:''}${dots}${xl}</svg>`;
+}
+
+let CUR=null;function receipt(s){CUR=s;
+ const end=m=>{const d=new Date(s.date);d.setMonth(d.getMonth()+m);return d.toLocaleDateString('en-GB')};
+ $('#rc').innerHTML=`<div class="c"><img src="${LOGO}" alt="" style="width:80px;height:80px;border-radius:50%;object-fit:cover"></div><h2>${esc(SHOP.name)}</h2><div class="c">${SHOP.tag?esc(SHOP.tag)+'<br>':''}${SHOP.addr?esc(SHOP.addr)+'<br>':''}${SHOP.tel?'ໂທ '+esc(SHOP.tel)+'<br>':''}ໃບເສັດຮັບເງິນ ${esc(s.no)}<br>${new Date(s.date).toLocaleString('en-GB')}</div><hr>
+ <div>ລູກຄ້າ: ${esc(s.cust||'-')} ${s.phone?'· '+esc(s.phone):''}</div>${s.by?'<div>ພະນັກງານ: '+esc(s.by)+'</div>':''}<hr>
+ ${s.lines.map(l=>`<div class="row"><span>${esc(l.name)} × ${l.q}</span><span>${fmt(l.price*l.q)}</span></div><small style="color:var(--mute)">ຮັບປະກັນເຖິງ ${end(l.warranty)}${l.sn?' · SN: '+esc(l.sn):''}</small>`).join('')}<hr>
+ <div class="row"><span>ສ່ວນຫຼຸດ</span><span>${fmt(s.disc)}</span></div>
+ <div class="row"><b>ລວມ (${esc(s.pay)})</b><b class="total" style="font-size:18px">${fmt(s.total)}</b></div>${s.pay=='ຕິດໜີ້'?'<div class="row"><span>ຊຳລະແລ້ວ</span><span>'+fmt(s.paid||0)+'</span></div><div class="row"><b>ຍັງຄ້າງ</b><b>'+fmt(s.total-(s.paid||0))+'</b></div>':s.rcv?'<div class="row"><span>ຮັບເງິນ</span><span>'+fmt(s.rcv)+'</span></div><div class="row"><span>ເງິນທອນ</span><span>'+fmt(s.rcv-s.total)+'</span></div>':''}<hr><div class="c">${esc(SHOP.foot||'ຂອບໃຈທີ່ອຸດໜູນ')}</div>
+ <div class="noprint fields"><button class="btn blink" id="pdfb">ພິມບິນ / ບັນທຶກ PDF</button><button class="btn sec" onclick="window.print()">ພິມຜ່ານ browser</button><button class="btn sec" onclick="$('#m').classList.add('hide')">ປິດ</button></div>`;
+ $('#m').classList.remove('hide');
+}
+
+$('#nav').onclick=e=>{const bt=e.target.closest('[data-t]');if(!bt)return;if(matchMedia('(max-width:860px)').matches&&$('#nav').classList.contains('col')){$('#nav').classList.remove('col');return}const t=bt.dataset.t;
+ document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b===bt));
+ ['sell','stock','hist','cus','rep','set'].forEach(i=>$('#'+i).classList.toggle('hide',i!=t));$('#sell').style.display=t=='sell'?'':'none';fab();if(matchMedia('(max-width:860px)').matches&&window.scrollY<120)$('#nav').classList.add('col')};
+$('#q').oninput=grid;$('#disc').oninput=$('#rcv').oninput=drawCart;$('#hq').oninput=hist;
+$('#grid').onclick=e=>{if(e.target.id=='smp'){seed.forEach(putP);return}const c=e.target.closest('.item');if(!c)return;const id=c.dataset.id,p=P.find(x=>x.id==id);
+ if((cart[id]||0)>=p.stock)return toast('ສິນຄ້າໃນສາງມີພຽງ '+p.stock+' ເຄື່ອງ');cart[id]=(cart[id]||0)+1;drawCart()};
+$('#cart').onclick=e=>{const d=e.target.dataset;
+ if(d.rm)delete cart[d.rm];
+ if(d.p){const p=P.find(x=>x.id==d.p);if(cart[d.p]<p.stock)cart[d.p]++;else toast('ສິນຄ້າໃນສາງມີພຽງ '+p.stock+' ເຄື່ອງ')}
+ if(d.m&&--cart[d.m]<1)delete cart[d.m];drawCart()};
+$('#clr').onclick=()=>{cart={};drawCart()};
+$('#pay-btn').onclick=async()=>{const r0=+$('#rcv').value||0;if($('#pay').value=='ຕິດໜີ້'&&!$('#cn').value.trim()&&!$('#cp').value.trim())return toast('ຕິດໜີ້ ຕ້ອງໃສ່ຊື່ ຫຼື ເບີໂທລູກຄ້າ');if($('#pay').value!='ຕິດໜີ້'&&r0&&r0<total()&&!await yes('ເງິນທີ່ຮັບໜ້ອຍກວ່າຍອດລວມ. ດຳເນີນການຕໍ່?'))return;
+ const ups=[],lines=Object.entries(cart).map(([id,q])=>{const p=P.find(x=>x.id==id);ups.push([p,Math.max(0,p.stock-q)]);return{id:p.id,name:p.name,price:p.price,q,warranty:p.warranty,cost:p.cost||0,sn:p.sn||''}});
+ const n=new Date(),z=x=>String(x).padStart(2,'0');
+ const s={no:'INV'+String(n.getFullYear()).slice(2)+z(n.getMonth()+1)+z(n.getDate())+'-'+z(n.getHours())+z(n.getMinutes())+z(n.getSeconds()),date:n.toISOString(),cust:$('#cn').value.trim(),phone:$('#cp').value.trim(),lines,disc:+$('#disc').value||0,total:total(),pay:$('#pay').value,by:ME,rcv:r0,paid:$('#pay').value=='ຕິດໜີ້'?Math.min(r0,total()):total()};
+ cart={};['#cn','#cp','#disc','#rcv'].forEach(i=>$(i).value='');drawCart();await putS(s);for(const [p,n] of ups)await setStock(p,n);all();receipt(s);toast('ຊຳລະເງິນສຳເລັດ')};
+$('#add').onclick=()=>{const n=$('#n').value.trim(),pr=+$('#pr').value;
+ if(!n||!pr)return toast('ກະລຸນາໃສ່ຊື່ ແລະ ລາຄາ');
+ putP({id:String(Date.now()),name:n,spec:$('#sp').value.trim(),grade:$('#gr').value,price:pr,stock:+$('#st').value||0,warranty:+$('#wr').value||0,cost:+$('#co').value||0,sn:$('#sn').value.trim(),code:$('#bc').value.trim(),img:IMG});IMG='';$('#im').value='';
+ ['#n','#sp','#pr','#st','#wr','#co','#sn','#bc'].forEach(i=>$(i).value='');toast('ເພີ່ມສິນຄ້າແລ້ວ')};
+$('#stb').onclick=async e=>{const d=e.target.dataset;if(d.rs){const n=parseInt(await ask('ເພີ່ມສິນຄ້າເຂົ້າສາງຈັກເຄື່ອງ?','ຈຳນວນ'));const p=P.find(x=>x.id==d.rs);if(n>0&&p)setStock(p,p.stock+n);return}if(d.im){IMT=d.im;$('#imf').click();return}if(d.ed){const p=P.find(x=>x.id==d.ed);if(!p)return;const v=+(await ask('ລາຄາໃໝ່ຂອງ '+esc(p.name)+' (₭)','ລາຄາ'));if(!(v>0))return;const c=await ask('ຕົ້ນທຶນ (₭) — ປ່ອຍຫວ່າງ = ບໍ່ປ່ຽນ','ຕົ້ນທຶນ');putP({...p,price:v,cost:c===null||c===''?(p.cost||0):+c});return}const id=d.del;if(!id)return;
+ if(await yes('ລຶບສິນຄ້ານີ້ອອກຈາກສາງ?')){delete cart[id];delP(id)}};
+$('#hb').onclick=async e=>{const d=e.target.dataset;if(d.v)receipt(S.find(s=>s.no==d.v));if(d.vd&&await yes('ຍົກເລີກບິນ '+esc(d.vd)+' ແລະ ຄືນສິນຄ້າເຂົ້າສາງ?')){const s={...S.find(x=>x.no==d.vd),void:true};await putS(s);for(const l of s.lines){const p=P.find(x=>x.id==l.id);if(p)await setStock(p,p.stock+l.q)}toast('ຍົກເລີກບິນແລ້ວ');all()}};
+$('#m').onclick=e=>{if(e.target.id=='m')$('#m').classList.add('hide')};
+let EX=[],PY=[];
+const putPay=async p=>{if(!db){{const i=PY.findIndex(x=>x.id==p.id);i<0?PY.push(p):PY[i]=p}try{localStorage.setItem('pos_py',JSON.stringify(PY))}catch(x){}all();return}try{await db.doc('pays/'+p.id).set(p)}catch(x){fail()}};
+const ck=s=>(s.phone||s.cust||'').trim().toLowerCase();
+function custs(){const m={};S.filter(s=>!s.void).forEach(s=>{const k=ck(s);if(!k)return;const c=m[k]||(m[k]={k,name:'',phone:'',n:0,tot:0,debt:0,last:''});c.name=s.cust||c.name;c.phone=s.phone||c.phone;c.n++;c.tot+=s.total;if(s.pay=='ຕິດໜີ້')c.debt+=s.total-(s.paid||0);if(s.date>c.last)c.last=s.date});PY.forEach(p=>{if(m[p.k])m[p.k].debt-=p.amount});return Object.values(m)}
+function cust(){const q=($('#cq').value||'').toLowerCase(),L=custs();$('#cl').innerHTML=L.map(c=>'<option value="'+esc(c.name||c.phone)+'">').join('');
+ $('#cb').innerHTML=L.filter(c=>(c.name+c.phone).toLowerCase().includes(q)).sort((a,b)=>b.debt-a.debt||(a.last<b.last?1:-1)).map(c=>'<tr><td><b>'+esc(c.name||'-')+'</b><br><small style="color:var(--mute)">'+esc(c.phone)+'</small></td><td data-l="ບິນ">'+c.n+'</td><td data-l="ຍອດລວມ">'+fmt(c.tot)+'</td><td data-l="ໜີ້ຄ້າງ" style="'+(c.debt>0?'color:var(--bad);font-weight:700':'')+'">'+fmt(Math.max(0,c.debt))+'</td><td><button class="x" data-cb="'+esc(c.k)+'" title="ເບິ່ງບິນ">🧾</button> '+(c.debt>0?'<button class="x" data-cp="'+esc(c.k)+'" title="ຮັບຊຳລະ" style="color:var(--ok)">💵</button>':'')+'</td></tr>').join('')||'<tr><td style="color:var(--mute)">ຍັງບໍ່ມີລູກຄ້າ. ເມື່ອໃສ່ຊື່ ຫຼື ເບີໂທຕອນຂາຍ ລະບົບຈະເກັບໃຫ້ອັດຕະໂນມັດ</td></tr>'}
+const addCart=p=>{if((cart[p.id]||0)>=p.stock)return toast('ສິນຄ້າໃນສາງມີພຽງ '+p.stock+' ເຄື່ອງ');cart[p.id]=(cart[p.id]||0)+1;drawCart()};
+const byCode=v=>{v=String(v).trim().toLowerCase();return v&&P.find(x=>(x.code||'').toLowerCase()==v||(x.sn||'').toLowerCase()==v)};
+const fab=()=>{const n=Object.values(cart).reduce((a,b)=>a+b,0),f=$('#fb');f.classList.toggle('hide',!n||$('#sell').classList.contains('hide'));f.innerHTML='🛒 '+n+' ລາຍການ · <b>'+fmt(total())+'</b> ›'};
+$('#fb').onclick=()=>$('#cartp').scrollIntoView({behavior:'smooth',block:'start'});
+let LY=0;const navSync=()=>{const n=$('#nav');if(!n)return;const y=window.scrollY;if(!matchMedia('(max-width:860px)').matches){n.classList.remove('col');LY=y;return}if(y>LY+8&&y>120)n.classList.remove('col');else if(y<LY-8||y<60)n.classList.add('col');LY=y};window.addEventListener('scroll',navSync,{passive:true});matchMedia('(max-width:860px)').addEventListener('change',navSync);navSync();
+const key=d=>{const x=new Date(d);return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
+function range(){const v=$('#rpd').value,n=new Date(),t=new Date(n.getFullYear(),n.getMonth(),n.getDate()),DY=864e5;let a,b=new Date(t.getTime()+DY);if(v=='m')a=new Date(n.getFullYear(),n.getMonth(),1);else if(v=='y')a=new Date(n.getFullYear(),0,1);else if(v=='c'){a=$('#rf').value?new Date($('#rf').value+'T00:00'):t;if($('#rt').value)b=new Date(new Date($('#rt').value+'T00:00').getTime()+DY)}else a=new Date(t.getTime()-Math.max(0,v-1)*DY);return[a,b]}
+const inR=(d,a,b)=>{const x=new Date(d);return x>=a&&x<b};
+function report(){const [a,b]=range(),ss=S.filter(s=>!s.void&&inR(s.date,a,b)),ex=EX.filter(e=>inR(e.date,a,b));
+ const sum=(r,f)=>r.reduce((x,y)=>x+f(y),0),tot=sum(ss,s=>s.total),pf=sum(ss,profit),ec=sum(ex,e=>e.amount);
+ const k=[['ຍອດຂາຍ',fmt(tot)],['ກຳໄລຂັ້ນຕົ້ນ',fmt(pf)],['ລາຍຈ່າຍ',fmt(ec)],['ກຳໄລສຸດທິ',fmt(pf-ec)],['ຈຳນວນບິນ',ss.length],['ເຄື່ອງທີ່ຂາຍ',sum(ss,s=>sum(s.lines,l=>l.q))],['ສະເລ່ຍ/ບິນ',fmt(ss.length?Math.round(tot/ss.length):0)],['ສ່ວນຫຼຸດລວມ',fmt(sum(ss,s=>s.disc||0))],['ໜີ້ຄ້າງຮັບ',fmt(custs().reduce((a,c)=>a+Math.max(0,c.debt),0))]];
+ $('#rk').innerHTML=k.map(([l,v])=>'<div class="glass stat"><small>'+l+'</small><b>'+v+'</b></div>').join('');
+ const ks=[];for(let d=new Date(a);d<b&&ks.length<92;d=new Date(d.getTime()+864e5))ks.push(key(d));const m={};ss.forEach(s=>{const q=key(s.date);m[q]=(m[q]||0)+s.total});const mx=Math.max(1,...ks.map(q=>m[q]||0)),bw=22;
+ $('#rch').innerHTML='<svg width="'+Math.max(300,ks.length*bw)+'" height="165" role="img" aria-label="chart">'+ks.map((q,i)=>{const h=Math.round((m[q]||0)/mx*120);return '<g><title>'+q+': '+fmt(m[q]||0)+'</title><rect x="'+(i*bw+3)+'" y="'+(130-h)+'" width="'+(bw-6)+'" height="'+h+'" rx="4" style="fill:var(--acc)"/>'+(ks.length<=31||i%5==0?'<text x="'+(i*bw+bw/2)+'" y="150" text-anchor="middle" font-size="10" style="fill:var(--mute)">'+q.slice(8)+'</text>':'')+'</g>'}).join('')+'</svg>';
+ const pm={};ss.forEach(s=>s.lines.forEach(l=>{const o=pm[l.name]||(pm[l.name]={q:0,r:0,p:0});o.q+=l.q;o.r+=l.price*l.q;o.p+=(l.price-(l.cost||0))*l.q}));
+ $('#rtp').innerHTML=Object.entries(pm).sort((x,y)=>y[1].r-x[1].r).slice(0,10).map(([n,o])=>'<tr><td>'+esc(n)+'</td><td>'+o.q+'</td><td>'+fmt(o.r)+'</td><td>'+fmt(o.p)+'</td></tr>').join('')||'<tr><td style="color:var(--mute)">ຍັງບໍ່ມີຂໍ້ມູນໃນເວລານີ້</td></tr>';
+ const g=f=>{const o={};ss.forEach(s=>{const q=f(s);o[q]=(o[q]||0)+s.total});return Object.entries(o).map(([q,v])=>'<tr><td>'+esc(q)+'</td><td>'+fmt(v)+'</td></tr>').join('')};
+ $('#rpm').innerHTML='<tr><th colspan="2">ວິທີຊຳລະ</th></tr>'+g(s=>s.pay)+'<tr><th colspan="2">ພະນັກງານ</th></tr>'+g(s=>s.by||'-');
+ $('#rex').innerHTML=ex.slice().sort((x,y)=>x.date<y.date?1:-1).map(e=>'<tr><td>'+new Date(e.date).toLocaleDateString('en-GB')+'</td><td>'+esc(e.note)+'</td><td>'+fmt(e.amount)+'</td><td><button class="x" data-xd="'+esc(e.id)+'">✕</button></td></tr>').join('')||'<tr><td style="color:var(--mute)">ບໍ່ມີລາຍຈ່າຍ</td></tr>';
+ const low=P.filter(p=>p.stock<=LOWN());$('#rst').innerHTML='ມູນຄ່າສາງ (ຕົ້ນທຶນ): '+fmt(sum(P,p=>(p.cost||0)*p.stock))+' · ມູນຄ່າຂາຍ: '+fmt(sum(P,p=>p.price*p.stock))+'<br>ໃກ້ໝົດ: '+(low.length?low.map(p=>esc(p.name)+' ('+p.stock+')').join(', '):'ບໍ່ມີ')}
+$('#rpd').onchange=$('#rf').onchange=$('#rt').onchange=report2;
+const putEx=async e=>{if(!db){{const i=EX.findIndex(x=>x.id==e.id);i<0?EX.push(e):EX[i]=e}try{localStorage.setItem('pos_ex',JSON.stringify(EX))}catch(x){}all();return}try{await db.doc('expenses/'+e.id).set(e)}catch(x){fail()}};
+$('#eadd').onclick=()=>{const n=$('#en').value.trim(),a=+$('#ea').value;if(!n||!(a>0))return toast('ໃສ່ລາຍການ ແລະ ຈຳນວນເງິນ');putEx({id:String(Date.now()),date:new Date().toISOString(),note:n,amount:a});$('#en').value=$('#ea').value='';toast('ເພີ່ມລາຍຈ່າຍແລ້ວ')};
+$('#rex').onclick=async e=>{const id=e.target.dataset.xd;if(!id||!await yes('ລຶບລາຍຈ່າຍນີ້?'))return;if(db){try{await db.doc('expenses/'+id).delete()}catch(x){fail()}}else{EX=EX.filter(x=>x.id!=id);try{localStorage.setItem('pos_ex',JSON.stringify(EX))}catch(x){}all()}};
+$('#rcsv').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ');const [a,b]=range(),r=[['No','Date','Customer','Seller','Pay','Discount','Total','Profit']];S.filter(s=>!s.void&&inR(s.date,a,b)).forEach(s=>r.push([s.no,s.date,s.cust,s.by,s.pay,s.disc,s.total,profit(s)]));await d.save({filename:'report.csv',data:'\ufeff'+r.map(x=>x.map(v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"').join(',')).join('\n')})}catch(e){}};
+const LOGO0='data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCAEAAQADASIAAhEBAxEB/8QAHQABAAIDAQEBAQAAAAAAAAAAAAYHAQQFCAMCCf/EAFkQAAEDAwEEBgUFCQoMBAcAAAECAwQABREGBxIhMRMiQVFhgQgUcZGhFSMyQlIWF2KCkqKxwdEzNFNWY3J0k7LSJCVDRFRVZHOUleHwGCaDszVFRmWEo9P/xAAbAQEAAgMBAQAAAAAAAAAAAAAABAUBAgMGB//EADIRAAEDAgMECQUAAwEAAAAAAAEAAgMEEQUhMRJBUXETImGBkbHB0fAGFDKh4TNCUnL/2gAMAwEAAhEDEQA/APLlKUrKwlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlZrFKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlKIlKUoiUpSiJSlbMO2zrgrdhw5Mk/yTalfoFbNaXGwC1c4NF3GwWtSpJH2d6okgEWl1sHtdWlH6TmttOyvUh+k3ER7ZA/UKlsw2qfm2J3gVCditG3Iyt8QohSpevZbqJIyEw1ex/wDaK0pGz7UscZNtLg/knUK/XWzsMq25mJ3gUZilG7SVviFHaVtzLTcLfn1uDJj47XGiB7+VanOoTmOYbOFiprXtcLtNwlKUrVbJSlKIlKUoiUpSiJWaxSiJSlKIlKUoiUpSiJSlKIlKUoiUpVhaQ2STbslEy9FyFFVgpZA+ecHn9Ee3j4VJpqSWpfsRC5UOtr4KOPpJ3WH7PIKCwLdMuklMaDGdkvK5IaSVH/pVgWLYzOkhLt4loiJPHoWQFueZ+iPjUjums9LaAjKttnitPyU8FNRzwCv5Rzjk+8+yq31BtAv2oipD8sx4yv8AN4+UIx49qvM1aGnoqP8AzHpH8BoOZ+clRNq8TxHOmb0Uf/Ts3HkPnNWCuLs70X1XvVpMpHML/wAJdz7Pop+FaE3bNGbwzarO4sck9MsIHkhOf01WcGSxFc33oLUvHJDq1JR5hJBPvFSmDta1JZkhNiTaLIO+BbWULPtcUlSz5mtHY5M0bNO0MHYF3Z9NwOO1VPdK7tJt4D3Ulh3XapqU5s+lpQbVyW1b1lP5S+FdVjZrt0uOCqKuKD/CyI7ePIHNQSVtj2hzDl7WV6P82QU/oxWp987XOc/djf8AP9Oc/bUN+JVT9ZHeJVlHhNFGLNib4A+atJOxbbYeJnRAe43Br9lfl3ZRtzhDeTGizQOxMmMsn3kVXUbbHtDiEFrWd84fbklY/OzUgtfpL7TLaodJfGZ6R9WZDbXnzAB+NatxCqbmJXeJXQ4dSnIxN8AujOZ2p6eQTetDTVsj6S24yyn8pBUmow/ftI3lxTV2szttk5wpxtOCk+O7g+9NWlp30x7iwtCdQaXivp+s9bn1Mq/JXvA+8VYkDarsW2toREvjdublOcAze4yWlg9yXuWfYsVKbjVVbZlIeODgD/f2o5walB2ogWHi0kfz9Ly7J0G1NaVJ07c2Lg2OPRKUA4PPl78VFZUSRCfUxJZcZdTzQtOCK9bar9EixTv8YaJvUqySiN5tt1wvR1fzVjrpHjlVUtrfTGrtClNv2gafVLgE7rNyY6yT4odHDP4KsGtXOo6jQdG7xb7j9rdraqDU9I3wd7H9KraV1blZUNMqm2yR67BB6ywMOM+Diez28jXKqBNC+J2y8ex5HepscrZBtN+c0pSlcl0SlKURKUpREpSlESlKURKUpREpSlESvpGjPTJDceO0t551QShtAypRPYBX5bbW6tLbaFLWshKUpGSonkAKuzRWkoGg7Q5fL0ttE0N7zriuIjpP1E96jyOOZ4Dxn0FC6qfa9mjU8AqrFsVZQRA22nuya3eT7L5aR0BbtGwjfNQOMGW0nfJcOW4vs+0rx7+XfUT1rtTm3wuQrQXYdv8AoqWODr48T9UeA8z2Uk397alra0WWRKVbrTKnNR2x/BhSgnpFdhXg+wcu/ONR6gh6Z1Dc7Ja9F2BlFvkuRUuTWFy317iineWVqKSo4zwSBx4CplXiAaz7ejFmcd7vnzgq7DsHe+T7zEjtSHQbm9luPzXNQLI7wPOtuFabjclBMGBLlHuYZUv9ANSdjaFqpvhDdhW4dghW2NHx7ClsH41+ntVaxuQxL1Nd3En6qpzgT7gcVVsp5HaNK9E6ZjdStKNsy1pJG8nTF2aR9uQwWU+9eBX2GzK+NqxNk2KB/SbtHBHklaj8K/Cbc7KVvSZJdV3rys+811rdbkxHA4zJdbWAU5QAOBBB+BNTocInk3eShy4lEzf5rSb2dxEKxK1jYk+EZEiQfg2B8a3GNBaZSodNqS5SB3RralA97jo/RXViWqCnGULX/OWa7UOJCbIxGa8xn9NW0H0y935OHifZVk/1Axn4tJ8PdcWNorRQIJZv8o9zktpoHyS2o/GuyzonR0hAYVp1+O26Q2qV668pxrPDeGcIyOeCkg4xUhgPNtY3EIT7EgVvXR31u0SGsknc3h7Rxqc/6cjiYSc/nNUzvqqQzNYGWBIF7/xebrrb3bTc5lueILsR9bCyO0pUUn9FatSvacxjVjs1IARcWGZgx9pSAF/npXUUrxDm7JIK92DcAqaaC2w6z2cOp+Q7u56mDlUCT87HX+Ifo+1JBr1Ls29I3Ru0+OLBqSLHtVxlJ6JcSZhyJLz9VKlcMn7KsHuJrxNStVleqtrPorvQFvah2aKW04kKU9Z1KzvDtDJPMfyasg9h5CvLs9JRJcQ5GVFeQopdZKSncWDxGDxTx7Dyq9tiHpPXDSK2LDrJ5+42Tg21MVlb8IchntW2O76QHLPKrV23bDbRtZtA1ZpBcX5cWyHm3WVDobm3jgCocN/H0V+R7xttu2djcsbA2trevFlK+sqM/CkuxZLLjD7Ky2404kpUhQOCkg8iDXyrVZSlKURKUpREpSlESlKURKUpREpSu1pDTy9TX2PA4hn90fWPqtjn5nkPE10iidK8RsGZXKaZkMbpZDYAXKneyXRyEIGpLggZ4iIlfJI7XP1DzPdUd2ka3Vqa4GFDcPyZGV1Mcnl8is+Hd4ce2pftS1Kix2ZqxW8hp2S3uqCOHRMDhgd2cY9gNU7yq8xOVtLGKCE6fkeJXmcFp31s5xSpGuTBwHH52nevrDluwJbEtk4dYcS6g9ykkEfEVY23WKhnabIujACYt+hxrsyByIdaBP5wVVaCrP2gH5b2UbOtRglTsNuTY5Kvs9EveaH5CjVHG7ZcCvUubcKDNKreYXiuW2qtxpeKv4jZVcrF1mXK61vjyphxHjuveKEkj31yrHIQ3c4inUpUjpUhQUMggnFXJCwEhIThKewDhXoMPg6ZpdfReYxetNLYBt7qJWzTsySw3IUtttpYCknO8SK2pcT5PS2d4qycEmu1aJkKJbSzJlx2THedZwtwJOAs45nuIrn6hnwZUE+qvh5SFpVlCSU45HjjHbVrE5jWZaqhFTNJPskdW9tF8I8rBHGupHlBSd1R4EYNRVmRxHGukxKxjjUlkgcLFdJ6ZQnaNG6S02uVu9eI9It7h8Mh1H9tz3VAqtDVzHrlpvjGCShLFxQPFCujX+a6T5VV+D2A18sxGHoql7OBX0yhl6WnY87wt6y2iRfLg3CjYClZKlnkhI5k1MFbPLXHkMMS585sPKDaZAQjoys8kntTnszw8a5eidRxNOOvJnQ3AmQQDJSCVJA7Mdo7eHH21sa/1S1dX2YNtfC4jWHFOIOAtZ5eQ/T7KtaSPD4qEzS9aS+np6kqrqpK6WsEMV2str6+ll2LrsgDVvdfts5559tJWGnUAdJjsBHI91djYFt1lbNriiyXl1x7TEpzrg5UqCs83ED7P2k+Y48+zp3V1skWqGmberZ66GwHd2QBlQ7eOPafHNVBrO9tXy/yHoqUtxGyW46EpCRug8VYHao5PnWMapKNkbJqY2vu19crKLgFdXSSvgqhfZ36emd9y9JekzsijaktatoWmG23ZTTQdnpj4UmWxjg+nHNSRjJ7U8fq8fKNekvRe2vKQtGz6+Pb7Lm8bW45xCSeKo5zzB4lI78jtFVrt52bp2d62dTBaKLPcgZUHubGeu1+ITw/BKa88vUqt6UpWESlKURKUpREpSlESlKURKuDZfa2rNpx27ysNql5cKz9RlOce/ifdVTQIa7hOjw2/pvuJbHhk4q2NotwRZdJIt0Y7nrG7FQB/BpHH4ADzr0OBRtjEla8ZMGXM/P2vNfULnTdFQsOchz5D5fuUPiJOtNRXa/z0n5NtzCp0gE4AaSQlprPetam0fjE9lRJ51b7q3XDla1FSiO8njVkX2ANG7FrJFPUuGrpirm/9oRGAUMJPgVrUv3d1VpVC97pHF7jmV6KONsbBGwWAyCVZ2lFfL+wzWdkPWds06JfGEnnuqyy6R7Bg1WNWHsPlIVq2XYX1AR9QWyVa155ZWjeQfykisNbtGyxNII2F50GfuoQyrKUnwrabXWqy0tsLacSUuNKKFJPMEc6+6cir2A7TA5RZBmQt1pwpwQcEcRVsW2226Wy068h2SFpSr555awcjPLOKqFtVSCFq+6Q2G2WnGghtISnLYJwKvcOqIotoSi4KoMWopZ2joTYjtsrWscOGzcLkwiJGSEKadbw2MpSpGMDhyyk++tjUDZetMtoDm0SB7OP6qq6Lre9My1y25DSXXGw0o9EnBSCSOHmeNbatc32QkpcmIIUMEBlA4e6p8dZHmAF5mTAqrphJtDK287gOxYafreZf5ca4bLvICttElDYytaUjvUcVvFNbVW8sN1vvpTJucRhRwic27b1n/eoKU/nEHyqIbNYD7+oC70zjKIyCp1KTjfJOAgjuzn3V17tdGPVUrakNl9lxDraUqyd5JyK5irqnS2vpkhPCHJd6RSRy6F3DiT5bwPlXnKySFmKMmeercXt87yrmCOV+GvhYOtYgX+eCnOt2IEqwORp0hqOpxQEdbhwOmAJTx7BzBPjVKkEEg8xVoXW0I1zPdcXPU1EiLLDCWgFhfAFS+faeA8BUV1do9GnHILcaQ7KVLKkgFAGCMAAY781v9RU087jVNZZgyvfM52056di4YBNFTtFM5/Xdna2mV9eWvauBARFcnR0TluIilwB1bYG8lOeJGauyXoSzP6ZftNvjtMlxIcafPWUXBxSoq5kHl3YNcKLsmiyLRDYkTFR5Sd5yQttAVvKUB1eJ5JxjxyTW/fHn9A6ZCVXhyW6E+rwm1spSc45k8SQkcezsFbYfQGjjkdWR9UjXK4yzGt/6oGKYk2uljZRSkPDtM7HPI6W8dyp5l5+FKQ8y4tl9hYWhaDhSFpOQQe8EV6h1NLa28bCflZttCr7aQX3EJHFL7afnUgdy0dYDvx3V5azntJ8atz0bNaHT+tFWSQvMK9I6LcPIPpyUHzG8n8YV5Futl7lVHSpFtE06NKa3vNnQnDUeSos/wC6V1kfmqFR2sIlKUrCJSlKIlKUoiUpSiKUbOIgk6nadIymM2t3zxuj4muzrdp7Uus7Rp+OSVuKbYTjsW6sDPuxXA0dqGLp1yY/IQ6446hKG0oA7yTknl2VtWjWrVt2hRdVOw1yGo74dDG/g8Ebo4945+VX5qImYUIGu67nXI7PgCpBTSPxMzuHVa2wPb8JUq9JS4MObRG7LDG7DsVujW5lA5JARvH+0PdVUV29a6i+6zVl1vgbW0mbIU6lCzlSU8gCfYBXEqhOqu0rpaauqrHqC23NCt0xJLb2fAKGfhmubT9dGktNwtJIxIwsdoRZTbXdrRbdod+itDDTr3rTR7NxzCxj8v4VwnOia+k4ge1QqX6ntsbVcfTOoZM0xYL8BEKbLDZWlmQ1kBK8fRKgRgnurYVsstkKKmSEz7mVDeSlp5CA4O9Jxg+Rr0VJHK8OZC0EC5zO45jIZqh+8ZFFGZydogA5bxkczlqFAVTI6P8AKZ9gzX5+VmhwS2tXuFSdStPQE4Tp9tDyCOkanOKDg49gVgK/74dtbgujzC3ER40WK0Ww4h9iMlKUjOMKOCOfDO9wPb2VzfM5psZB3AnzspjTtC4Ye8geV1GI6rrL/etrkOeIbUf1V0EWTUy8FbDcUHkXVoR+k10H5t4mtq9YlPBLrPTNpC8gY5gFJII8s9+K1QkuvRJEuWlKZSCFce0YxvYwQcju8eNcTUDe5x7w3yBW3ROP+rR4n2WBp6Z0anJV9ioSkgK6NSnME9nVGKym0WRrf9YuMx9aFbqg22lPHzJOPGvmENRUocklXS9KQ807hJ3c8D1sZJzW5EER71qNHYVMU/ulnoUrdLeOzdSCPDhy7K4mZpP4+JJ9fRdBE4f7eFh6LYiQbRGdUyYTspwngXlkDGOGAMA8u+pJ8naW1FFT8rackRVIQltMu3OkLQhIASChWQrgK+sDTWoFEPpsrsFtbPRKVJQmO2RzJBWrgfLFd3TOmY0mW7DeulnfW5wEdNwJIA5Z6LG8fAGt7BwsQPBZzBuCow3sdukZwTdDanh3BZA/wOQfVZH80pV1Fe8VDdfo1VHdixtTWWRbHY28EqW0pCXCccQrik8uw16Ssuym3x55mOywCTkNNR0lKP5pd3yD486sm2WaKiG7Dluybmw/+6N3BwPpP4pGB7q0fJI2Iwscdk7tyCKN0glc0bQ37144jbWJcS0Q0erNSJiN5DynSRvAY3VDHfxz4jxqJ6l1RP1TMTJmlCQ2ndaabGEtjtxntPaa9ian9GTZ9qwLchQ3rBLVyctysNk+LSsp/J3aonaR6MOp9BQn7nHuNuu1vYQp1RSvoHwhIyT0az1sAZ6pJ4cq0qcSqZ29HK+4yy5LSlwukp39LEwB2efP54Kmq+8KY/bZsebGWUPxnEvNqHYpJyD7xXwrNV6sVafpAFq53uxamjgBq9Wpp7h9pPP4KSPKqsqX6i1JEvOgNLWwuFU+1LksuAjk0pQKONRCt363WAlZrFK0WUpSlESlKURK6+mNMzdV3IwIK2W3EtqdUt4kJCRgdgPaRXIq0NjdsuSWLhc4livdwQtSY4dhQHH0Jx1lAqSCM8U8Kl0MUcs7WTOs3edFBxKWaKme+nF37ha60RsS1ATgTrXk/hr/ALtdjYJsggbSNc3S03tx4261x1qeXEc3CtzfCEgKIPA4UeXZUyvl0u9ntEyfI05qOK2wypZekWt5ttBxgFSiMAZI4mp56GunPk/Qt0v7yfnrtOKEqPNTbQxnP89Tnuqdi8FHDsilde9753VbgU+IzbZrhYC1src1+9Q+ivsw09YbjeJK74GYEZ2SvM4DghJV9jwrxnnPGvfnpHuXh7ZTc7bYbbOuM25LaidHDZU6tLZVvLJCRy3UkZ/Crxb96rX/APEnUn/Lnf2VTL0Ki2KxXRvGnrzp55LN5tNwtrq+KUS462ir2bwGa17dbZt3mtQbdEkTJbx3WmGGytxZxnASOJ4A0WF+rfdZtrWVw5C2t7gpHNCx3KSeqoeBBqY2LXxjrWpp9NtkOuJW606FOwn+GDlOctE8OIzy5pFcz71mvv4k6k/5c7/dp96zX38SdSf8ud/u10jlcwhzTZaPia8FrhcFWNHvmndTlqHfGW7ZcHAC2lx3Db3d0UhJAI/BUceJrSm7KrnDuARAeQ42sHpVOu+rOIB7DuoJIx25491VnLtF/s0pu0zrXcYz76gEQpMZaVOKJwN1Chkknhwqe6Yd2saZaERGkdQTbeOCYsm3PqDf8xW7vI9gOPCp769s3+cXPHf38VBjoeg/wGw4bu7guzH2WyCW/Xbu0eg/cltRyteOGAouEggY5Y/ZXSibObOwol5ybJSr6bSndxpZ7yhIAqOv7YJLUlyLMtQhPsqKHWXd4LbUDgpI7CDW7a9qbt4f9UtGmbreJoSVlmInJ3RzOAFHHEccdtbB9OMwuuzKdVK4miLHFZUm22y3xJJHzb64qXyg+xec1FdQWnadbVBEefJnRnDupNqSGseBQgBQ+I8aXTWO0yKw6/H2fTrdHbQXFvSLfId6NIGSolQCQAO0ioexq7afrQrbtkm+zQDhTdqjqSlPgeiSMedcJKiM/iPRdGxO3rtL2e6tdR61emkwkEbxduktKT7lEn4VgWSw20A3DVTKz9iBEW5j2KXuJqOr2cbRXnS/I0VqaQ9nPSPQX1n4iuXdrfqfTToRdLbcbO45y6eKphSvYSAT765CcDctjEVc1h2sRtKRQzbomqL8ndwPXXmm2EeIVhRHszisXD0jtUlJTGGl7MPtLcXMdHkjIz5VStt03qXVKHJFts94vCW1bq3I8dx8IVjOCQDg4rZXs71m281HXpLUCXXs9G2be6CvHPA3eOM1o6YlbiMBTW7bbNRXEKRN1zqGQj+CtjKITZ8N7Ofzah03WCHS65HgvKlutrbMydMXJdSlSSlWPopBIJGcHGeFfK4bPdY2mKuVcNKX2JHQMrdegupQkd5JTgedfi1aE1ZfIwlWvTN6nR1cQ9HhOLQfYoDBrmXFbWXCrNdm8aL1Np5gSLxp2721knAdlQ3GkZ7t4jFbOz9m3u6qhuXR+OzEYKnlF9YSlRSOqOPjjh4VtDH0jwwG1zZcqiboYnSkXsCbcbLes+ynVF4jIkiMzEaWApPrTm4pQPbugEjzxXR+8hqb/SbX/XK/u1ap1pp4ZJvtt7/3wn9tcQ7YtKpUR6xLOO0Rjg16p2FYdEAJJM+YXz4Y9jcziYYsuGySoL95DUv+k2v+uV/drhaj2e3/AEvH9amxkORQQkvsL30pJ5Z7R5irs09ruzaoeeZtrzynGUhakuNFHDOMjzra1OthzTd0TJALPqju8D3bh/XitnYHSSQmSB3fe4WkX1RicNS2KqYNRcWsc15lpQcqV49fSkpSlESve/o+2P7mNken4yklD0pkznuwlTqioZ/F3B5V4Y09aHdQX63WhkHpJ0luMnHZvqAz7jX9FI5ahsNRmAEssIS02B2JSMD4AUQKrPS01SbTsuTa21/OXiY2yU55tt/OK+IQPOrB2VWEaQ2c6dspTuOR4Lanh/KrG+v85RqituDh13tw0ZotPXjxejckJ7ukX0i//wBbY99ejvWckkdvId1FlcvU+1TRui5zcDUOooltlONB5LTu+VFBJAV1UnhkH3VsaU2j6W1uZA05fYlzVGCS8lkqCmweRIUAcHHOvEvpBajOpNrN9dQ5vsw3EwGiO5pO6fzt4+dXJ6HtkEPT19v7iTvzJKIbSj9htO8rH4yx+TRFb2261Wy/bK9StXRpDiI0B2U0tQyWnW0lSFJPYcgDhzBI7a8iej1qfTOjNobeoNUzvUo0OK70Cgytwl5YCAMJBxhKlnNemPSBmS5WgU6ct6sTtRz41qY/HXvKz4YRx8DW/oXYzorQsFlmNZoc+elIDtwmMpdddX2kb2QgZ5BIGPHnRF8//FLsp/jM9/wL/wDdqV6H2r6T2j+uDTF1M5ULd6dJZcbKArO6cKAyDg8u6ojK2zbJIEh2K7frEHGlFCwiIVAEcwClsg+RqW6V1Hp/UlrF1029FkQXFqbD8dnowpSeY4pBOM1hFGPSSRBTstm3iQhv120SY0uC8odZt4PIHVPZkZB/6VZ0Se3NiMymVZbfbS6g57FAEfprzn6YWpfV9HWawIcwq4zFPuAdrbSeH5yx7qtDY5fvlzZZpeaV7yzb22Vn8JvLZ/sURePfSDtnyTtk1SzjdS7LEoHvDqErz71GvTfovbLRoTSAvtyY3L1e0JdUFDCmI/NDfgT9I+0Dsriau2So1x6Q8e7XCMVWOJbY0ySVDqyHUqWhDXjncBP4KT3irP2jbQoOzrSM2/zila2k7kZgnBkPn6CB58T3AE1lFx9ocxG0HVcbZfFkuIhlkXHUDrK8KTFBHRxwRyU6ojPaEDxqXz7lpbZdpNcp/wBUstjt6AN1pvdQjJwAlKRlSifaSapT0UUzrvE1Zri7uqfn3q4JaU6r624neVjuG84AB2BIHZVt6x1Hoy3x2YWsZ9jZYkEuNMXRSClwp+sEryDjPPszWEXC096SezbU97hWa3XqQqZNdDDCXIbqAtZ4AZIwMnhxqXa/05a9X6PutouzLbsV6M4crGeiUEkpcSexSTxB8KhEPVuxG3ympcO46DjSWVbzbrKY6FoPeCBkHxri7XtvOko2iblbNPX2Jd7zdGFworUBzpOjLg3CtShwSACcdpOOFEW96J+nvkLZDDlLRuvXaQ7NV3lOdxP5qAfOrA1XtJ0hoeRHjai1BBtr8kbzTbyzvKTnG9gA4Ge08OBr9aUtjemdMWmyMgBFvhsxhjtKEAH3kGvHO1Vxe0z0jX7SyouMuXJi0oAP0UNlKFn2Z6Q0Re5gpt9oEKS42sZBzkKB/SKjMvaXou0ajY0rI1Dbo93WpDLcLfwoKVjdRwGEk5GASOY767XrDENgnKW47KM9wShI/UBXiHZChzaR6Q8a7yElbblwkXh0HjupQVLT8dwURe5psKNcoj0Oaw3IjPoLbrLqd5C0ngQQeYr+b980qtzXd5sNhYXIZiz5DDPHglpDikgqUeQAA4mv6G6m1A1pzTd0vLyh0cCI7JOfwEEgeZAFeM9m8Ux7Gbi91pdycU+64eahvHH6z51aYRhxrqjoibAZnkqrGMR+xpzK0XcchzXJtuxhKmgq53YpWeaIzYIH4yufurfOxqzf6zuHuR+yulrHWqNKxmClgSJEhRCEKXugAYySfMVE/vzSz/8AKY39er9lelnhwekf0Mo6w5leSgkx2sb08Tuqf/IU60no636Q9YVEefeckYClukZAHIAACtLajfEW/Sr8YLw9OIZQntKcgqPswMedQ1/bHcVtkMW6G0vsUpalY8uFQ273uffpZl3CSp93GB2JQO4AcAKj1mM0kdMaejGotpYC+uq70P09WS1baquOhB1uTbTTKy0qUpXj17pKUpRFano12A3jadGlqbUtq1MOTDgZAXjcR+cvPlXsIKXwG6oZ4Zxyr+etuvNzs6nF224zIKnAErMZ9TZWBxAO6Rmt0601SRg6kvZB/wBud/vURX1shUrW+3bVusCC4xC6RuOoDON49EjH/poV76vm8XlNitM66vgpahR3JKiRwwhJV+qvANuvt3syXE226T4KXCCsRpC298jlndIzzNfaVq3UU2O5GlX+7vsODdW27McUlY7iCrBFFlaEuW7OlPS5Cit19anXFd6lEk/EmvcGxqyK0xsysEEtrS6uMJTwKeO+6Ss/BQHlXiF63TY7rbT0OS246AUIW0oFee4EcfKuy9qjWcENtvXvUUcKGG0rlPoyBwwAT7OVEXqDX2roLO27QNonyA0xFD8tW+cJD7qVNs5J5cU8P5wq3FqK0KbWlW6oFJGCOB4V/PG6Lu8244uqrhInqCUYllanSPqjrcfYK6bWr9aW9RgtX/UMdTIOWBKeSWwBn6OeGBRF6rPo2bNME/JM8AcT/h7uAPfVgaYsVs0nY4tmskYx7fHB6JAUV/SJUTvHiSSSc14Se1frK5MerPX+/wAlmUko6JUp5aXh2jGesO8VhzWOsIREdzUN/jlACejVMeQUjHAYJ4DFEVh+lNqA3baWLcleW7TDbY3e5a/nFefWSPKrf9Fe9mZswVByoqt895rGOSVhLg+KlV5Ikrn3KT61JVKlSJSield3lrePInJyVGti13y+Wpl5FqudzhtZDjoiPuNp7gpW6QO3GTRYX9EDIUBxBAHMngBXi7b9tSVtE1X6rBeKrJaipmLg8Hl/Xe88YH4IHeahTmrtWSY5S5qC+usPZaIVMeKV5HFPPB4Hl41y27fMdS4W4khYaJCylpR3COYOBw86LK9b+ixqa3TNnYsbLzYuFvkvKeYz11IWreS4BzKeOM9hT7KsPV+gdLa8VGVqSzN3BUUKDKlrWgoCsZGUkcOA514CiS5EF9EiJIejvI4pcZWUKT7CONSJzXGu4zDLzmpdSNsuj5papjwSsD7JJwfKiL1wPR+2YcvuTaJ/pD/9+q+v+hdn0Xa5o3S2lrQyzNZmG4XNTLzjnRNNJ30tq3lEAkpyRzHDvqhZmtdbpjtmXqLUYZfG8jpZbwS4O8EniPZXKgy7vbLgt2DIuESaEq3lsKWh0AjKskccY4miL+h93vSLNap11kkpbhsOSVkjsQkq/VXkj0Zre/qTa6u/SkqdVBZfnuLxn51w7g88uKPlVbStSawmW1wyrzqB+A6kocLsl5TS0nhg5OCK07Xc75Zln5Km3OCuQgE+quONl1Iyc9XG8Bx+NEXuPbTqZWnNlmo5iVKbeXFMVo8jvukNjHkonyqmvQ5sX+MdQ6iU2SGWWoDSsdqjvr+CEe+qMm3TVt8g7k6dfp8Q/ObrzrzrZxnrccjhx41+LXdNU2aCtVrm3uDDUelWYrjrbZPLeO7gdmM0RewPSb1Gu07KJsNpRS/d5DMBA7SCd9XwRjzqn7e0IECPESODDSW+XcMVTt0u2prpGZeutwvMuO2oLaXKddWhKjyKSo4B8RXxMy+CMJZk3P1dSt0Pb7m4T3b3LNXuCYtHh5e57NoutvVLjGFvrg1odYC6u5wNvYLjSHMct5AOPfX46CN/orH9Un9lUd8s3P8A1jN/r1ftp8sXP/WM3+uV+2r4/VsBNzD+x7KlH0tKMhL+irx6CN/orH9UP2VVm0eS29qLoGkIQiMylGEpA4nrHl7RXC+WLn/rGb/XK/bWq66484px1a3FqOVKWSSfaTVVi+PR1sHQxx7Od1ZYXgjqSbpXv2sl+aUpXmV6FKUpRFsW+SzEmNvSIiJbSc7zK1EBXDvHvruJ1LYxz0jBP/rrqN0qTDVSRN2WW72g+YKjzUscpu+/cSPIhSb7p7DjH3HQf+IXXL03OFs1Ja5xeYjpjTGX+lfZLzbe6sHKkDitIxxSOdc2urdNPPW+BHuCHEPxX8briezIyMjs7R5V0d09Uxz7AhmZsANeQH8WkbIaZwaCbu4knzJ/quu97QtLP650Ve5OqVTH4V5VLmerypsmFHYJSd9KZCd9tZIOUI3gABXPnbQLE1tGtF3kakblxW4cthmWzJm3A2t9xCg3I3ZSQcpUpJ3UZxu55gVR1KhKWrfs2r2bPqt1V42kKvUt6zPwYWoEtyXhaH1rykhTiQ4RjeBUkZT0hxyrqxNptnsmp7BNf1G1fbpZ7HcWJF7cYcWiW+4hwx2TvpC3EpJCd5QGd49gqoLDpS/6pW8ixWafc1MAKdEVlTnRg8s45ZwfdXZ+9HtB/iZfv+DXRZVlQtouiGtR7PJ1rlKssKAm5uzY6krItb0hKsJSUpypG+cpIyQnGeIqGbS9TQ7rp3T9pd1MrVt5guSHJF3LboAZXubkcLdAW4ElK1ZIwN/AqJ37RmpNLtsu3yxXK2NvKKW1ymFNpWQMkAntx2VyG23HnEttIU4tRwlKRkk9wFALrBNtVdWz/aNo2xxNnjF1itPy7UuYX5y3n0G277y1JO4kbrmQQe3nWtss1doHS2k3LRfp01T2o3nWbomLDDiWIm4pttK1KIIwpZey2FHqJHhVOVJrTs51FerXHucZmA3Ek73Qrl3KNGLoSopUUpccSSAoEZxjINEVg6D15pLT2k7XpS+yG5sT7on5T77LSukiBKWegltkjlvIWFJ5lBUMZxW3bdeW5yHqNu2bQvuUkSdXvXZEhKJJMmIUqxgNpO9kkHdXjPbVe/ep1MOGbD/z6D//AFrlah0betLsxn7mxGDEpS0NPRpbMltSkAFSd5pSgFAKScHjgiiLb1bfrNdtolyvlvtu5Z37iqSiGUhG81v5KSBwTvDPAct6p3rzWcG5Xtu8L12rUennLuxNb0uWX0dBHSonolJUkNN7ifmwEkhWc1UDbTjpIbQpZSkqISM4AGSfYBX5pZLq59oOubbcNM6njPa2Vqz5amMv2mEWHU/JKUuFRUekSEtHcPRbjZIPPkBUnuO2vRMjVl7ltRmxKmwJVsVeOjVuOxBFV0ISnG8HVOlLalEY3W095qr4GwraDcoMSbHsbJZltIeZ6S4Rm1KQsApO6pwEZBB4jtqET4Mm2TpEGY0pmTGdWy82rmhaSQoHHcQRRZVvx9sVs09s+sFmh/Kdxmt2aVBkRPXlNwG1uuvcXWCj51YSsKBCgPo91NPat0tHa01qeTqFpiVYdPSbQ7aFMOmQ+8pMhKC2oJ3Nw9OCSVDG6eFU2GnC0XQhRbSoJK8cATkgZ7+B91fqPHelyG40Zpx551QQ222kqUtROAABxJJ7KWWLqfWbaTc7dsrumn0amujEpU+ImLGRIdATFDb4eSnHBKCpSMp7c8jUpvGuLPO2P2uxwtTMMTI1nEZ+GZs9panA6tRbDKE9AvKSBlZ7fAVATsj2gjnou/jH+xr/AGVo3rQOrNOQvXrxpy7W+JvhsvyIykICjyBJGATRZVr3Latp2ToKVY411uCpo0rDtyI8qS4q3LdAQHUpZ3Oq+kDKVklJOeI4Z0rtrex3TZILTO1O2ZbFrjxYsG2OzGitxC0kIkR1p9XIHEl1JBUQDjjVLUosLfs0+Hb5anptsauTRQUhpxZQAcjrZH/fGu391Ng/iZA/4hdfnS1giP2q43q6pV6nGQUIAOCtfh8B7TUY51YkzU0THZWdcgWBNuOY37lWmOCqleM7tsDZzgOWRGm9Sc6osJ/+jYA//IXXBuMliZNdfjRG4bKyN1hCioI4DtPv861qVGlqpJRsut3ADyAUmGkjhO0y/e5x8yUpSlR1JSlKURKUpREqZaLmMXSDJ05OOUOpKmSeY7SB4g9YedQ2vrGkOw5DchhZbdaUFoUOwip2H1hpZxJa40I4g6hRaym+4iLAbHUHgRoV+7nbn7TOdhyU4caVjPYodhHgRWtVi3KEzr6wt3GElKblHG6tsHmeZR580mq7UlSFFKklKgcEEYIPdXTE6H7aQOjN43ZtPZ7jeuVBWdOwteLPbk4dvsVLrMtSNl2pylRT/jW2cQcfUlVEunX/AAyvyz+2rW2a7ZtNaD005aJuzi3Xt99YXIlPyMiRulRbKm1oUkKSFqAKccDXWd2/aRduiJv3rrc2wnGYSfVOhVgY4kxt/jz4KqtVgoIHFL2PO5UVD7om+Zz/AJquuBpc41Hbf6QirN11tw0vq7Skiww9mFrtK1r6Vl9iRuhl3G70m4hCQpQTkDe4caqa3zF26cxMbQla2VhYSrkSO+ukDg2RrjoCFxnYXxuaNSCtYcqluq937jtEZ3f3hK5/016omKn+ktt2rdG2NiyW9dschR1rU0JUBt5bYUreUApXHGSTjxrmuqgHU/A+FSuZj71doxj/AOOzuX9Hi1ad29J9lyxpas9gEW9ANh2dIZYdaf3QQfmd3CM5z1ePAc6q3XW0/UW0REJu9uQg1CK1MtRYqGEhS93eUQkcThKRx7qIuPp798y/6DJ/9o1yj9E+ytmFMVCccWhCVFxlxkhXYFpKSfbxrXxkYrq5wLA3hf0XJrCJHO429V7X09sit+prJpu9PzoTbz9rgHo3LJCfX1GGx+6OIKzy7+HZ2V5J2icdoOpz/wDdpf8A7yqu3TfpUWKzWjT8eVoh6VPssNMRqX62gKT1EoWUZRlIUEjIqgdRXUX7UFzuwZLInS3pXR729ub6yrdz24zzrkuy/bB/8szR/trH9h2u3siJG1HShHMXWP8A2xUZRNWi3uwglO466h4q7QUhQA9nWNdzZ3q2PobV1v1BJs7F4RCX0iYzrhb64+ioKGcKScEZBFdZHBwaBuHqVxiYWlxO8+gXCffd6d3LrhO+r6576luk3Vq0FrwKcWrMSDwKif8APG6mt0246FuLaUs7I7TblBe+pyMqMVL8D0kdQx7ONY1Dt40lc9LXax2rZPZbSu5shpUhp4DdIOUqIQhJUUqwoDOMgZzXJdVS9bdqtki83BiBFTl15W6D2JHao+AHGtRKSohIBJPAAczVmWqEzs4025dZ6EqvExO40yrmjtCfLmryFT6CkE7yXmzG5uPZ7ncq/Ea37dgawXe7Jo4n2GpXL19Nj2qHD0rbz81FSFvqHNSuYB8eJUfaKhFfSRIdlvuSH3C466orWs81E8zXzrnW1RqZTJaw0A4AaBdaGl+2hEd7nUniTqVmlKVEUtKxWaxREpSlESlZrFESlKURdTTt/kaduCZLOVtq6rzWeDif2jsNTHUmmY2qoSb7YilbyxlbY4dLjnw7Fj4/prquxpvU8vTcouM/OR1kdKwo8FjvHcfGrjD6+NrDSVYvEfFp4j1Hw1VdRSF4qaY2kHg4cD6fLcgNK6XoldRW9unf4bpzjj3V206WUqaqN6yQEoSre6LjxWU53c8EgjJPdxxU0uNis+voXyla3kMzcYUojBz9lxPf+F+mq6ulpm2aUY06OtlzszyUO8HkRWarD/s+u5u2w6OByWtNX/d9Rrth41aRmttjTynmoi/WUgyXEIGEZSN5RHA56xG7kjhzFazttSzdG4S3yErKAV9H1kbwHApzwIzxGa1Ay70ReDaujScFYHBJ8T2V+OVVzpIiAAzPmfmasGxyAkl+XIfMl1/kAKiqfblgj1v1UbyMAcQN5RzwHW+FZGnit2QgSej6AgfPt9GpXUWrgnJ+x8a4+ezPA0yaz0sWXU/ZWvRy2PX/AEF9Ykcy5DbAcZaKzjfeXuoHDtPZX5Zb6Z5tvO7vqCc92TivxSuAIyyUix4qQv6RLD8xszN4R2A+N1rrLyopxjPDlzrSjWiM+9b21TVoExBUT0IPRkEjH0uPFJ7uyuZvHJOTk9uaxXd0sRNxHlzPH2yUZsUwFjJnyHD3z/S7DGnxIiQ5KJRCJUjoE7zf0RvYyTn4fGtWdbm4NyTEXJSWzuEvbvBIUAc4BOcZ7Ca0cnGM8KGtXSRloAZnlvPf4rdscgcS59xnuHd4LstaYfclyYhfaQ7Ga3lZPAuHk2DniT318G7G+6pgJ3t2RHU82rcOFqCSdwd54Y865vOmTgDJwOXhWTJF/wAfvt5cPdYDJf8Av9dnPj7LrSdPqjQpklUje9We6HdSjOTgE5OeHPHlXJAJOAMnlgV94MGXcpKIkNlx95w4DaBkn/p4mrJtOmrToCGm8395D0//ACTKetuq7kD6yvwuQ+NS6eiNUdpg2GDUk5D+9ih1VeKNuy87bzo0DM/ztWvpXS8XSsE6l1HhtbY3mGFDJQTyOO1Z7B2c/ZDdSailaluS5kjqoHVaaByG0d3t7z2mvrqfVU3VEzppB6NhBPQsJPVbH6z3muLWa2sjLBTU2UY8XHifQLWgopA81VVnIfBo4D1PwqUpVWrZKUpREpSlESs1ilEWaxWaURYrNYpREpSlEW3bLpMs8tMqC+pl1PDI5KHcR2jwqw7ZrKyaqjC336Oyy6rgOk/c1HvSrmg/95qsaVZUOKTUl2tzadWnMFV9bhsNVZzsnDRwyIVizNA3SxyTcNMzVKOP3FZG8Uns49VafBQ4+NaDTmkrm8YmqbXO0xcM4M22tbzJPeuMrl7W1Afg1xLHrG72HDceR0kcf5B7rI8u0eVTONr/AE/fWUxr5BDP+9R0ree8EDI91TzDh1ZnE7oncDm3uO75koAmxGjylb0reI/LvG/5mtdOw+9Xdgy9IXay6pjYziFJCH0j8JpzBSfDNRW76E1TYVqTc9O3WJu81ORV7v5QGPjU3a0PZZzgnadu70J4cUuRH9/d+O8PfUiturNr2mAG4OpWLvHTwDc5IWSPaoZ/OqPNgNZGLtbtDi03/qkQ47RyHZc7ZPB2X8/aok9UkHgR2Hgaxkd499ei/v36qA3dQbL7NdMc1tt8/eF1lO27SYOZuw+OF9uI7R4+bNVz6WZmTmEdxVgyphf+LweRC855HePfX1YjvSnA2w048s8ktpKifIV6MHpA6bij/FuxCEHewrZaH9ljNfOR6R+0mQgtaa0NarI2eSkQ1KUPNRSn4Vq2nldk1hPcVl1REwXc8DvCqOybHtoGoin5N0heXEq5OORyyj8pe6K3rlssj6Vz91+rrJbX087fAX8oTM9xQ31E/jLFSC93Ha9rzeRf9SSW46/pMeshprHd0bQwfOuUzsys9oQHr/ekpQOJQkhlJ8zknyFTosFrHi5ZsjicvNQJsboozYP2jwbn5KE3Fy1OuCLZYEtQJwHZSwt5z2IQAlPs6x8akOntl90ue6/cj8nRvpELGXVD+b9X2n3V2V610npdBa09bBIfAx0wTug+1ausfKohftaXnUO8iTJ6OOT+92eqjz7VeddhBQ0ucz+kdwbp3u9lHNRX1eULOibxd+Xc33Uxl6r07oiM5A05HblyzwW9neTn8JfNXsHCq8ul1m3mYqXOkLfeV2q5JHcByA8BWpSolZiEtSA09Vg0aMgFMosNipiXjrPOrjmSlKUqArFKUpRFmlYrNESsUpREpSlESlZrFESlKURKzWKURKUpREpSs0RZbcWysONLU2sclIJBHmK7UPWuoYIAbuj60j6r2HB+dmuJWK7RVEsRvG4jkbLjLTxSi0jQeYupixtSvjX7ozBe8S2Un4GtxG1uekda2xT7HFioFSp7cbrm5CU+fmoLsEoXaxD9jyU+VteuGOrbYoPi6s1pv7Vb67no2oLPsbKj8TUNpR2N1zsjKfLyWG4JQtNxEP2fNdyZrfUU4FLl1kJSfqtYbH5oFcVx1byy46tTizzUskk+Zr81moEs8spvI4nmbqfFTxRC0TQOQssUpSuK7JSlKIlKUoizSsUoiVmsUoiUpSiJSlKIlKVmiLFKUoiUpSiLNYpSiLNYpSiJSlKIlKzSiLFKUoizSsZpREpSlESs1ilEWaxSlEWaxSlESs1ilESlKURf/9k=';
+const PRE=[['ຟ້າ','#2f8bff','#1565ff','#00b4ff','#0a3a8a','#071a3a'],['ມ່ວງ','#8a5cff','#6d3bff','#9b6bff','#3b1d8a','#1b0f3a'],['ຂຽວ','#12a37f','#12a37f','#5ee0c2','#0b5a47','#06241d'],['ສົ້ມ','#ff7a2f','#ff7a2f','#ffc04d','#8a3a0b','#2a1406']];
+PRE.push(['ແດງ','#ff4d6d','#ff3b5c','#ff7a8a','#7a0f2a','#22060f'],['ທອງ','#f5b301','#e0a100','#ffd65c','#7a5300','#1f1603'],['ເທົາຖ່ານ','#9aa4b2','#6b7685','#c3cad6','#2b3340','#0d1017'],['ຊົມພູ','#ff5fb3','#e8489a','#ff9fd0','#7a1a4f','#200812'],['ຟ້າຄາມ','#22d3ee','#06b6d4','#67e8f9','#0e5a6b','#04171c'],['ຂຽວໝາກໄມ້','#84cc16','#65a30d','#bef264','#3f6212','#0f1a05']);
+let THEME={mode:'dark',i:0,bl:24},LOGO=LOGO0;
+const LOWN=()=>Number.isFinite(SHOP.low)?SHOP.low:2;
+const lumOf=h=>{const c=[1,3,5].map(i=>parseInt(h.substr(i,2),16)/255).map(v=>v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4));return .2126*c[0]+.7152*c[1]+.0722*c[2]};
+const applyTheme=()=>{const r=document.documentElement,p=PRE[THEME.i]||PRE[0];r.style.setProperty('--on',((lw)=>(((lw+.05)/(lumOf('14213d')+.05))>(1.05/(lw+.05)))?'#14213d':'#ffffff')(lumOf(p[1])));r.dataset.theme=THEME.mode=='auto'?'':THEME.mode;[['--acc',p[1]],['--b1',p[2]],['--b2',p[3]],['--b3',p[4]],['--bl',(THEME.bl||22)+'px']].forEach(([k,v])=>r.style.setProperty(k,v));if(THEME.mode=='dark'){r.style.setProperty('--bg1','#04070f');r.style.setProperty('--bg2',p[5])}else{r.style.removeProperty('--bg1');r.style.removeProperty('--bg2')}};
+const brand=()=>{$('#lg').src=LOGO;$('#sh').textContent=SHOP.name;document.title=SHOP.name+' POS'};
+const setUI=()=>{[['sn1',SHOP.name],['sn2',SHOP.tag],['sn3',SHOP.tel],['sn4',SHOP.addr],['sn5',SHOP.foot],['sn6',LOWN()]].forEach(([i,v])=>{$('#'+i).value=v==null?'':v});$('#lgp').src=LOGO;$('#tm').value=THEME.mode;$('#tb').value=THEME.bl||22;$('#th').innerHTML=PRE.map((p,i)=>'<button class="x" data-th="'+i+'" style="width:auto;height:36px;padding:0 14px;'+(i==THEME.i?'outline:2px solid '+p[1]:'')+'"><span style="color:'+p[1]+'">●</span> '+p[0]+'</button>').join('')};
+let IMG='',IMT='';
+const shrink=f=>new Promise(r=>{const fr=new FileReader();fr.onerror=()=>r('');fr.onload=()=>{const i=new Image();i.onerror=()=>r('');i.onload=()=>{const k=Math.min(1,480/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.72))};i.src=fr.result};fr.readAsDataURL(f)});
+$('#im').onchange=async e=>{const f=e.target.files[0];IMG=f?await shrink(f):'';toast(IMG?'ເລືອກຮູບແລ້ວ':'ອ່ານຮູບບໍ່ໄດ້')};
+$('#imf').onchange=async e=>{const f=e.target.files[0],p=P.find(x=>x.id==IMT);if(f&&p){const g=await shrink(f);if(g){putP({...p,img:g});toast('ບັນທຶກຮູບແລ້ວ')}else toast('ອ່ານຮູບບໍ່ໄດ້')}e.target.value=''};
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('pos:'+s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const ask=(t,ph,pw)=>new Promise(r=>{$('#rc').innerHTML='<h2 style="font-size:17px">'+t+'</h2><div class="fields"><input id="ai" type="'+(pw===2?'text':pw?'password':'number')+'" inputmode="'+(pw===2?'text':'numeric')+'" placeholder="'+ph+'"><button class="btn" id="ao">ຕົກລົງ</button><button class="btn sec" id="ac">ຍົກເລີກ</button></div>';$('#m').classList.remove('hide');$('#ai').focus();const d=v=>{$('#m').classList.add('hide');r(v)};$('#ao').onclick=()=>d($('#ai').value);$('#ac').onclick=()=>d(null);$('#ai').onkeydown=e=>{if(e.key=='Enter')d($('#ai').value)}});
+const yes=t=>new Promise(r=>{$('#rc').innerHTML='<h2 style="font-size:17px">'+t+'</h2><div class="fields"><button class="btn" id="ao">ຍືນຍັນ</button><button class="btn sec" id="ac">ຍົກເລີກ</button></div>';$('#m').classList.remove('hide');const d=v=>{$('#m').classList.add('hide');r(v)};$('#ao').onclick=()=>d(true);$('#ac').onclick=()=>d(false)});
+
+$('#rc').onclick=e=>{if(e.target.id=='pdfb'&&CUR)savePdf(CUR)};
+async function savePdf(s){try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ. ໃຊ້ປຸ່ມ “ພິມຜ່ານ browser”');
+ try{await document.fonts.load('16px "Noto Sans Lao"')}catch(e){}
+ const rows=[],add=(a,b,o)=>rows.push([a,b||'',o]);
+ add(SHOP.name,'',1);if(SHOP.tag)add(SHOP.tag);if(SHOP.addr)add(SHOP.addr);if(SHOP.tel)add('ໂທ '+SHOP.tel);add('ໃບເສັດ '+s.no);add(new Date(s.date).toLocaleString('en-GB'));
+ add('ລູກຄ້າ: '+(s.cust||'-')+(s.phone?' · '+s.phone:''));if(s.by)add('ພະນັກງານ: '+s.by);add('---');
+ s.lines.forEach(l=>{add(l.name+' × '+l.q,fmt(l.price*l.q));const e=new Date(s.date);e.setMonth(e.getMonth()+l.warranty);add('   ປະກັນເຖິງ '+e.toLocaleDateString('en-GB')+(l.sn?' · SN: '+l.sn:''))});
+ add('---');add('ສ່ວນຫຼຸດ',fmt(s.disc));add('ລວມ ('+s.pay+')',fmt(s.total),1);if(s.pay=='ຕິດໜີ້'){add('ຊຳລະແລ້ວ',fmt(s.paid||0));add('ຍັງຄ້າງ',fmt(s.total-(s.paid||0)),1)}else if(s.rcv){add('ຮັບເງິນ',fmt(s.rcv));add('ເງິນທອນ',fmt(s.rcv-s.total))}add('---');add(SHOP.foot||'ຂອບໃຈທີ່ອຸດໜູນ','',1);
+ let LG=null;try{LG=new Image();LG.src=LOGO;await LG.decode()}catch(e){LG=null}const H0=LG?110:0,W=520,L=34,c=document.createElement('canvas');c.width=W;c.height=rows.length*L+40+H0;const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,W,c.height);x.fillStyle='#000';
+ if(LG)x.drawImage(LG,W/2-45,12,90,90);rows.forEach((r,i)=>{const y=30+H0+i*L;if(r[0]=='---'){x.fillRect(20,y-8,W-40,1);return}x.font=(r[2]?'700 ':'')+'19px "Noto Sans Lao",sans-serif';x.textAlign='left';x.fillText(r[0],20,y);if(r[1]){x.textAlign='right';x.fillText(r[1],W-20,y)}});
+ const bin=atob(c.toDataURL('image/jpeg',.92).split(',')[1]),im=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)im[i]=bin.charCodeAt(i);
+ const pw=W/2,ph=c.height/2,enc=new TextEncoder(),parts=[],off=[];let len=0;const put=u=>{parts.push(u);len+=u.length},str=t=>put(enc.encode(t)),obj=(n,b)=>{off[n]=len;str(n+' 0 obj\n'+b+'\nendobj\n')};
+ str('%PDF-1.4\n');obj(1,'<</Type/Catalog/Pages 2 0 R>>');obj(2,'<</Type/Pages/Kids[3 0 R]/Count 1>>');
+ obj(3,'<</Type/Page/Parent 2 0 R/MediaBox[0 0 '+pw+' '+ph+']/Resources<</XObject<</I 4 0 R>>>>/Contents 5 0 R>>');
+ off[4]=len;str('4 0 obj\n<</Type/XObject/Subtype/Image/Width '+c.width+'/Height '+c.height+'/ColorSpace/DeviceRGB/BitsPerComponent 8/Filter/DCTDecode/Length '+im.length+'>>\nstream\n');put(im);str('\nendstream\nendobj\n');
+ const cs='q '+pw+' 0 0 '+ph+' 0 0 cm /I Do Q';obj(5,'<</Length '+cs.length+'>>\nstream\n'+cs+'\nendstream');
+ const xr=len;str('xref\n0 6\n0000000000 65535 f \n'+[1,2,3,4,5].map(n=>String(off[n]).padStart(10,'0')+' 00000 n \n').join('')+'trailer\n<</Size 6/Root 1 0 R>>\nstartxref\n'+xr+'\n%%EOF');
+ await d.save({filename:s.no+'.pdf',data:new Blob(parts,{type:'application/pdf'})});toast('ບັນທຶກ PDF ແລ້ວ')}catch(e){toast('ບັນທຶກ PDF ບໍ່ສຳເລັດ')}}
+$('#q').onkeydown=e=>{if(e.key!='Enter')return;const p=byCode($('#q').value);if(p){addCart(p);$('#q').value='';grid()}};
+$('#cq').oninput=cust;
+$('#cn').onchange=()=>{const c=custs().find(x=>x.name==$('#cn').value);if(c&&!$('#cp').value)$('#cp').value=c.phone};
+$('#cb').onclick=async e=>{const d=e.target.dataset;if(d.cb){$('#hq').value=d.cb;$('#nav [data-t=hist]').click();hist()}
+ if(d.cp){const c=custs().find(x=>x.k==d.cp);if(!c)return;const v=+await ask('ຮັບຊຳລະໜີ້ຂອງ '+esc(c.name||c.phone)+' (ຄ້າງ '+fmt(c.debt)+')','ຈຳນວນເງິນ');if(v>0){await putPay({id:String(Date.now()),k:c.k,amount:Math.min(v,c.debt),date:new Date().toISOString(),by:ME});toast('ບັນທຶກການຊຳລະແລ້ວ')}}};
+$('#rs').onclick=()=>$('#rsf').click();
+$('#rsf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;let j;try{j=JSON.parse(await f.text())}catch(x){return toast('ໄຟລ໌ບໍ່ຖືກຕ້ອງ')}
+ if(!Array.isArray(j.products)||!Array.isArray(j.sales))return toast('ນີ້ບໍ່ແມ່ນໄຟລ໌ສຳຮອງຂອງລະບົບ');
+ if(!await yes('ກູ້ຄືນ '+j.products.length+' ສິນຄ້າ ແລະ '+j.sales.length+' ບິນ? ຂໍ້ມູນທີ່ມີລະຫັດດຽວກັນຈະຖືກແທນທີ່'))return;
+ toast('ກຳລັງກູ້ຄືນ...');for(const p of j.products)await putP(p);for(const s of j.sales)await putS(s);for(const x of j.expenses||[])await putEx(x);for(const x of j.pays||[])await putPay(x);if(j.shop&&db){try{await db.doc('config/shop').set({...SHOP,...j.shop})}catch(x){}}toast('ກູ້ຄືນສຳເລັດ')};
+$('#scan').onclick=async()=>{if(!('BarcodeDetector' in window))return toast('ເຄື່ອງນີ້ບໍ່ຮອງຮັບສະແກນດ້ວຍກ້ອງ. ໃຊ້ເຄື່ອງສະແກນ USB ຫຼື ພິມລະຫັດ ແລ້ວກົດ Enter');
+ let st;try{st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}})}catch(e){return toast('ເປີດກ້ອງບໍ່ໄດ້. ກະລຸນາອະນຸຍາດໃຫ້ໃຊ້ກ້ອງ')}
+ const v=document.createElement('video');v.srcObject=st;v.setAttribute('playsinline','');v.muted=true;await v.play();$('#rc').innerHTML='<h2 style="font-size:17px">ສະແກນບາໂຄດ</h2>';v.style.cssText='width:100%;border-radius:14px';$('#rc').appendChild(v);const b=document.createElement('button');b.className='btn sec';b.textContent='ປິດ';b.style.marginTop='10px';$('#rc').appendChild(b);$('#m').classList.remove('hide');
+ let iv;const end=()=>{clearInterval(iv);st.getTracks().forEach(t=>t.stop());$('#m').classList.add('hide')};b.onclick=end;const det=new BarcodeDetector();
+ iv=setInterval(async()=>{try{const r=await det.detect(v);if(r.length){const p=byCode(r[0].rawValue);end();if(p)addCart(p);else{$('#q').value=r[0].rawValue;grid();toast('ບໍ່ພົບລະຫັດ '+r[0].rawValue)}}}catch(e){}},400)};
+$('#bk').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ');await d.save({filename:'pos-backup.json',data:JSON.stringify({products:P,sales:S,expenses:EX,pays:PY,shop:SHOP},null,1)})}catch(e){}};
+$('#th').onclick=e=>{const i=e.target.closest('[data-th]');if(!i)return;THEME.i=+i.dataset.th;applyTheme();setUI()};
+$('#tm').onchange=()=>{THEME.mode=$('#tm').value;applyTheme()};
+$('#tb').oninput=()=>{THEME.bl=+$('#tb').value;applyTheme()};
+$('#lgf').onchange=async e=>{const f=e.target.files[0];if(!f)return;const g=await shrink(f);if(g){LOGO=g;$('#lgp').src=g;brand()}else toast('ອ່ານຮູບບໍ່ໄດ້')};
+$('#lgr').onclick=()=>{LOGO=LOGO0;$('#lgp').src=LOGO;brand()};
+$('#ssv').onclick=async()=>{const lw=parseInt($('#sn6').value);SHOP={...SHOP,name:$('#sn1').value.trim()||SHOP.name,tag:$('#sn2').value.trim(),tel:$('#sn3').value.trim(),addr:$('#sn4').value.trim(),foot:$('#sn5').value.trim(),low:lw>=0?lw:2};THEME.mode=$('#tm').value;THEME.bl=+$('#tb').value;
+ if(db){try{await db.doc('config/shop').set(SHOP);await db.doc('config/theme').set(THEME);await db.doc('config/logo').set({d:LOGO==LOGO0?'':LOGO})}catch(e){return fail()}}else{try{localStorage.setItem('pos_shop',JSON.stringify(SHOP));localStorage.setItem('pos_theme',JSON.stringify(THEME));localStorage.setItem('pos_logo',LOGO==LOGO0?'':LOGO)}catch(e){}}
+ applyTheme();brand();all();toast('ບັນທຶກແລ້ວ')};
+$('#shop').onclick=async()=>{const n=await ask('ຊື່ຮ້ານ','ຊື່ຮ້ານ',2);if(n==null)return;const t=await ask('ເບີໂທຮ້ານ','ເບີໂທ',2);if(t==null)return;SHOP={...SHOP,name:n.trim()||SHOP.name,tel:t.trim()};if(db){try{await db.doc('config/shop').set(SHOP)}catch(e){fail()}}else{try{localStorage.setItem('pos_shop',JSON.stringify(SHOP))}catch(e){}}toast('ບັນທຶກແລ້ວ')};
+$('#ex').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ');
+ const r=[['ເລກບິນ','ວັນທີ','ລູກຄ້າ','ເບີໂທ','ສິນຄ້າ','ສ່ວນຫຼຸດ','ລວມ','ຊຳລະ'],...S.map(s=>[s.no,s.date,s.cust,s.phone,s.lines.map(l=>l.name+' x'+l.q).join('; '),s.disc,s.total,s.pay])];
+ await d.save({filename:'sales.csv',data:'\ufeff'+r.map(a=>a.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n')})}catch(e){}};
+applyTheme();brand();setUI();
+(async()=>{try{db=await claude.use('db')}catch(e){db=null}
+ if(db){$('#sy').textContent='☁ sync ແລ້ວ';try{const u=await claude.use('user');if(u){const m=await u.me();OWN=!!m.isOwner;ME=m.name||''}}catch(e){}db.doc('config/shop').onSnapshot(s=>{if(s.exists){SHOP={...SHOP,...s.data()};}brand();setUI();all()},()=>{});db.collection('pays').onSnapshot(s=>{PY=s.docs.map(d=>d.data());all()},()=>{});db.collection('expenses').onSnapshot(s=>{EX=s.docs.map(d=>d.data());all()},()=>{});db.doc('config/theme').onSnapshot(s=>{if(s.exists){THEME={...THEME,...s.data()};applyTheme();setUI()}},()=>{});db.doc('config/logo').onSnapshot(s=>{LOGO=s.exists&&s.data().d?s.data().d:LOGO0;brand();setUI()},()=>{});role();
+  db.collection('products').onSnapshot(s=>{PR=s.docs.map(d=>d.data());mergeP()},()=>{$('#sy').textContent='sync ມີບັນຫາ'});
+  db.collection('stock').onSnapshot(s=>{ST={};s.docs.forEach(d=>{ST[d.id]=d.data().n});mergeP()},()=>{});
+  db.collection('sales').onSnapshot(s=>{S=s.docs.map(d=>d.data()).sort((a,b)=>a.date<b.date?-1:1);all()},()=>{});
+ }else{LS();try{PY=JSON.parse(localStorage.getItem('pos_py'))||[]}catch(e){}try{EX=JSON.parse(localStorage.getItem('pos_ex'))||[]}catch(e){}try{THEME=JSON.parse(localStorage.getItem('pos_theme'))||THEME;LOGO=localStorage.getItem('pos_logo')||LOGO0}catch(e){}try{SHOP=JSON.parse(localStorage.getItem('pos_shop'))||SHOP}catch(e){}applyTheme();brand();setUI();role();$('#sy').textContent='ເກັບໃນເຄື່ອງນີ້ເທົ່ານັ້ນ';all()}})();
+all();
+</script>
+<script>
+(function(){
+ const box=document.getElementById('boot');
+ const fail=m=>{if(box){box.style.display='';box.textContent=m}};
+ const load=src=>new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(src);document.head.appendChild(s)});
+ const timer=setTimeout(()=>fail('ໂຫຼດບໍ່ສຳເລັດ. ກວດອິນເຕີເນັດ ຫຼື ປິດ VPN ແລ້ວລອງໃໝ່'),15000);
+ load('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js').then(()=>{
+   clearTimeout(timer);
+   const s=document.createElement('script');s.textContent=document.getElementById('app-src').textContent;document.body.appendChild(s);
+   if(box)box.remove();
+ }).catch(()=>fail('ໂຫຼດ Supabase ບໍ່ໄດ້. ກວດອິນເຕີເນັດ ຫຼື ປິດ VPN ແລ້ວລອງໃໝ່'));
+})();
+</script>
+</body>
+</html>
