@@ -556,6 +556,26 @@ $('#scan').onclick=async()=>{if(!('BarcodeDetector' in window))return toast('ເ
  const v=document.createElement('video');v.srcObject=st;v.setAttribute('playsinline','');v.muted=true;await v.play();$('#rc').innerHTML='<h2 style="font-size:17px">ສະແກນບາໂຄດ</h2>';v.style.cssText='width:100%;border-radius:14px';$('#rc').appendChild(v);const b=document.createElement('button');b.className='btn sec';b.textContent='ປິດ';b.style.marginTop='10px';$('#rc').appendChild(b);$('#m').classList.remove('hide');
  let iv;const end=()=>{clearInterval(iv);st.getTracks().forEach(t=>t.stop());$('#m').classList.add('hide')};b.onclick=end;const det=new BarcodeDetector();
  iv=setInterval(async()=>{try{const r=await det.detect(v);if(r.length){const p=byCode(r[0].rawValue);end();if(p)addCart(p);else{$('#q').value=r[0].rawValue;grid();toast('ບໍ່ພົບລະຫັດ '+r[0].rawValue)}}}catch(e){}},400)};
+let QRS=null,qrStop=()=>{};
+async function scanAny(){
+ const onCode=async code=>{await qrStop();const p=byCode(code);if(p){addCart(p);toast('ເພີ່ມເຂົ້າກະຕ່າແລ້ວ')}else{$('#q').value=code;grid();toast('ບໍ່ພົບສິນຄ້າ: '+code)}};
+ if(!window.Html5Qrcode){
+   const ok=await new Promise(res=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js';s.onload=()=>res(true);s.onerror=()=>res(false);document.head.appendChild(s)});
+   if(!ok)return toast('ໂຫຼດຕົວສະແກນບໍ່ໄດ້. ກວດອິນເຕີເນັດ');
+ }
+ $('#rc').innerHTML='<h2 style="font-size:17px">ສະແກນບາໂຄດ</h2><div id="qrreader" style="width:100%"></div><button class="btn sec" id="qrstop" style="margin-top:10px">ປິດກ້ອງ</button>';
+ $('#m').classList.remove('hide');
+ qrStop=async()=>{try{if(QRS){await QRS.stop();QRS.clear()}}catch(e){}QRS=null;$('#m').classList.add('hide');qrStop=()=>{}};
+ $('#qrstop').onclick=()=>qrStop();
+ try{
+   QRS=new Html5Qrcode('qrreader');
+   await QRS.start({facingMode:'environment'},{fps:10,qrbox:{width:260,height:140}},onCode,()=>{});
+ }catch(e){
+   toast('ເປີດກ້ອງບໍ່ໄດ້. ກະລຸນາອະນຸຍາດການໃຊ້ກ້ອງ');
+   await qrStop();
+ }
+}
+$('#scan').onclick=scanAny;
 $('#bk').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ');await d.save({filename:'pos-backup.json',data:JSON.stringify({products:P,sales:S,expenses:EX,pays:PY,shop:SHOP},null,1)})}catch(e){}};
 $('#th').onclick=e=>{const i=e.target.closest('[data-th]');if(!i)return;THEME.i=+i.dataset.th;applyTheme();setUI()};
 $('#tm').onchange=()=>{THEME.mode=$('#tm').value;applyTheme()};
