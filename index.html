@@ -171,6 +171,7 @@ body.cfgwait #login{visibility:hidden}
     </div>
     <div class="row" style="margin-bottom:8px"><input id="rcv" type="number" min="0" placeholder="ເງິນທີ່ຮັບ (₭)" style="max-width:60%"><small id="chg" style="color:var(--mute)"></small></div>
     <div class="row" style="margin-bottom:12px"><span>ລວມທັງໝົດ</span><span class="total" id="tot">0 ₭</span></div>
+    <div id="qrbox" class="hide" style="text-align:center;margin:10px 0"></div>
     <button class="btn" id="pay-btn" disabled>ຊຳລະເງິນ</button>
   </div>
 </section>
@@ -340,7 +341,7 @@ function drawCart(){
  const e=Object.entries(cart);
  $('#cart').innerHTML=e.length?e.map(([id,q])=>{const p=P.find(x=>x.id==id);return `<div class="cart-line"><div class="row"><b>${esc(p.name)}</b><button class="x" data-rm="${id}">✕</button></div>
  <div class="row"><div class="qty"><button data-m="${id}">−</button><span>${q}</span><button data-p="${id}">+</button></div><span>${fmt(p.price*q)}</span></div></div>`}).join(''):'<p style="color:var(--mute)">ກະຕ່າຫວ່າງ. ແຕະສິນຄ້າເພື່ອເພີ່ມ.</p>';
- $('#tot').textContent=fmt(total());{const r=+$('#rcv').value||0;$('#chg').textContent=r?(r<total()?'ຄ້າງ ':'ເງິນທອນ ')+fmt(Math.abs(r-total())):''}$('#pay-btn').disabled=!e.length;fab()
+ $('#tot').textContent=fmt(total());{const r=+$('#rcv').value||0;$('#chg').textContent=r?(r<total()?'ຄ້າງ ':'ເງິນທອນ ')+fmt(Math.abs(r-total())):''}$('#pay-btn').disabled=!e.length;fab();renderQr()
 }
 function stockTab(){
  $('#stb').innerHTML=P.map(p=>`<tr><td>${p.img?'<img src="'+p.img+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:10px;float:left;margin-right:8px">':''}<b>${esc(p.name)}</b><br><small style="color:var(--mute)">${esc(p.spec)}</small></td><td data-l="ເກຣດ">${esc(p.grade)}</td><td data-l="ລາຄາ">${fmt(p.price)}</td><td data-l="ເຫຼືອ" style="${p.stock<=LOWN()?'color:var(--bad);font-weight:700':''}">${p.stock}</td><td data-l="ຮັບປະກັນ">${p.warranty} ເດືອນ</td><td><button class="x" data-im="${p.id}" title="ຮູບ">📷</button> <button class="x" data-ed="${p.id}" title="ແກ້ລາຄາ">✎</button> <button class="x" data-rs="${p.id}" title="ເພີ່ມສາງ" style="color:var(--ok)">+</button> <button class="x" data-del="${p.id}" title="ລຶບ">✕</button></td></tr>`).join('');
@@ -367,6 +368,13 @@ async function loadPublicConfig(){
  const lt=$('#lgt');if(lt)lt.textContent=SHOP.name||'ເຂົ້າສູ່ລະບົບ';
  const pp=$('#pqp');if(pp&&PAYQR)pp.src=PAYQR;
  document.body.classList.remove('cfgwait');
+}
+function renderQr(){
+ const box=$('#qrbox');if(!box)return;
+ const on=$('#pay').value=='ໂອນ'&&Object.keys(cart).length>0;
+ box.classList.toggle('hide',!on);
+ if(!on){box.innerHTML='';return}
+ box.innerHTML=`<div style="font-size:13px;color:var(--mute);margin-bottom:6px">ສະແກນ QR ເພື່ອໂອນເງິນ</div>${PAYQR?`<img src="${PAYQR}" alt="QR" style="width:200px;max-width:100%;background:#fff;padding:8px;border-radius:12px">`:'<p style="color:var(--mute);font-size:12px">ຍັງບໍ່ໄດ້ຕັ້ງ QR ທະນາຄານ (ໄປ ຕັ້ງຄ່າ)</p>'}<div style="font-size:20px;font-weight:700;margin-top:6px">${fmt(total())}</div>`;
 }
 let PAYQR='';
 let USERS=[],SESS=null;
@@ -617,6 +625,7 @@ async function scanAny(){
 $('#pqf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const g=await shrink(f);if(!g)return toast('ອ່ານຮູບບໍ່ໄດ້');PAYQR=g;$('#pqp').src=g;
  if(db){try{await db.doc('config/payqr').set({d:g});toast('ບັນທຶກ QR ແລ້ວ')}catch(x){fail()}}else{toast('ບັນທຶກ QR ໃນເຄື່ອງນີ້ແລ້ວ')}};
 $('#scan').onclick=scanAny;
+$('#pay').onchange=renderQr;
 $('#bk').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ');await d.save({filename:'pos-backup.json',data:JSON.stringify({products:P,sales:S,expenses:EX,pays:PY,shop:SHOP},null,1)})}catch(e){}};
 $('#th').onclick=e=>{const i=e.target.closest('[data-th]');if(!i)return;THEME.i=+i.dataset.th;applyTheme();setUI()};
 $('#tm').onchange=()=>{THEME.mode=$('#tm').value;applyTheme()};
