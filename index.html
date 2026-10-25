@@ -351,6 +351,16 @@ function mine(){const el=$('#mine');if(!el)return;if(!ME){el.style.display='';el
   const list=today.slice().reverse().slice(0,6).map(s=>`<div class="row" style="padding:8px 0;border-bottom:1px solid var(--line)"><span>${esc(s.no)} · ${new Date(s.date).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})}</span><span>${fmt(s.total)} <button class="x" data-mv="${esc(s.no)}" title="ໃບເສັດ">🧾</button></span></div>`).join('');
   el.style.display='';el.innerHTML=`<div class="row"><b>ຍອດຂາຍຂອງຂ້ອຍມື້ນີ້</b><span>${today.length} ບິນ · ${fmt(tot)}</span></div>${list||'<p style="color:var(--mute);margin:8px 0 0">ຍັງບໍ່ມີບິນມື້ນີ້</p>'}`}
 $('#mine').onclick=e=>{const v=e.target.dataset.mv;if(v)receipt(S.find(s=>s.no==v))};
+async function loadPublicConfig(){
+ try{
+   const sh=await dGet('config','shop');if(sh)SHOP={...SHOP,...sh};
+   const th=await dGet('config','theme');if(th){THEME={...THEME,...th};applyTheme()}
+   const lg=await dGet('config','logo');if(lg&&lg.d)LOGO=lg.d;
+ }catch(e){console.warn('config',e)}
+ brand();setUI();
+ const li=$('#lglogo');if(li)li.src=LOGO;
+ const lt=$('#lgt');if(lt)lt.textContent=SHOP.name||'ເຂົ້າສູ່ລະບົບ';
+}
 let USERS=[],SESS=null;
 function applyPerm(){const st=!ADMIN;document.body.classList.toggle('staff',st);document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('hide',st&&!['sell','stock','cus'].includes(b.dataset.t)))}
 function ulist(){const el=$('#ulist');if(!el)return;const adm=!!(SESS&&SESS.role=='admin');el.innerHTML=USERS.map(u=>`<tr><td><b>${esc(u.name||'-')}</b><br><small style="color:var(--mute)">${esc(u.email||'')}</small><br><small style="color:var(--mute)">UID: ${esc(u.uid)}</small></td><td>${u.role=='admin'?'ຜູ້ດູແລ':u.role=='staff'?'ພະນັກງານ':'ລໍຖ້າອະນຸມັດ'}</td><td style="white-space:nowrap">${adm&&u.role=='pending'?`<button class="btn" data-ap="${esc(u.uid)}" style="padding:6px 10px;font-size:12px;max-width:none">ອະນຸມັດ</button> `:''}${adm?`<button class="x" data-pw="${esc(u.uid)}" title="ປ່ຽນລະຫັດ">🔑</button> <button class="x" data-ud="${esc(u.uid)}" title="ລຶບ">✕</button>`:''}</td></tr>`).join('')||'<tr><td style="color:var(--mute)">ຍັງບໍ່ມີຜູ້ໃຊ້</td></tr>'}
@@ -590,6 +600,7 @@ $('#ex').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)retur
  const r=[['ເລກບິນ','ວັນທີ','ລູກຄ້າ','ເບີໂທ','ສິນຄ້າ','ສ່ວນຫຼຸດ','ລວມ','ຊຳລະ'],...S.map(s=>[s.no,s.date,s.cust,s.phone,s.lines.map(l=>l.name+' x'+l.q).join('; '),s.disc,s.total,s.pay])];
  await d.save({filename:'sales.csv',data:'\ufeff'+r.map(a=>a.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n')})}catch(e){}};
 applyTheme();brand();setUI();
+loadPublicConfig();
 (async()=>{try{db=await claude.use('db')}catch(e){db=null}
  if(db){$('#sy').textContent='☁ sync ແລ້ວ';try{const u=await claude.use('user');if(u){const m=await u.me();OWN=!!m.isOwner;ME=m.name||''}}catch(e){}db.doc('config/shop').onSnapshot(s=>{if(s.exists){SHOP={...SHOP,...s.data()};}brand();setUI();all()},()=>{});db.collection('pays').onSnapshot(s=>{PY=s.docs.map(d=>d.data());all()},()=>{});db.collection('expenses').onSnapshot(s=>{EX=s.docs.map(d=>d.data());all()},()=>{});db.doc('config/theme').onSnapshot(s=>{if(s.exists){THEME={...THEME,...s.data()};applyTheme();setUI()}},()=>{});db.doc('config/logo').onSnapshot(s=>{LOGO=s.exists&&s.data().d?s.data().d:LOGO0;brand();setUI()},()=>{});role();
   db.collection('products').onSnapshot(s=>{PR=s.docs.map(d=>d.data());mergeP()},()=>{$('#sy').textContent='sync ມີບັນຫາ'});
