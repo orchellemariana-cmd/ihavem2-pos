@@ -129,10 +129,11 @@ th,td{padding:7px 6px}
 .ufields{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-bottom:10px}
 .ufields label{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--mute)}
 .ufields input,.ufields select{color:var(--text)}
+body.cfgwait #login{visibility:hidden}
 @media print{body{background:#fff}.blob,.app,.toast{display:none!important}.modal{position:static;background:none;padding:0;display:block}.receipt{background:#fff;color:#000;box-shadow:none;border:0;backdrop-filter:none;max-width:100%;max-height:none}.noprint{display:none!important}}
 </style>
 </head>
-<body class="locked">
+<body class="locked cfgwait">
 <div id="boot" style="position:fixed;top:14px;left:0;right:0;text-align:center;color:var(--text);font-size:14px;z-index:30;pointer-events:none">ກຳລັງໂຫຼດ...</div>
 <div id="login" class="modal"><div class="glass receipt" style="max-width:360px">
   <div class="c"><img id="lglogo" alt="" style="width:72px;height:72px;border-radius:50%;object-fit:cover"></div>
@@ -220,6 +221,9 @@ th,td{padding:7px 6px}
   <h3>ຮູບແບບ (Theme)</h3>
   <div id="th" class="row" style="justify-content:flex-start;flex-wrap:wrap"></div>
   <div class="form" style="margin-top:12px"><select id="tm"><option value="dark">ມືດ</option><option value="light">ສະຫວ່າງ</option><option value="auto">ຕາມລະບົບ</option></select><label style="display:flex;flex-direction:column;font-size:13px;color:var(--mute)">ຄວາມເບລີ glass<input id="tb" type="range" min="6" max="40"></label></div>
+  <h3>QR ໂອນເງິນ (ທະນາຄານ)</h3>
+  <div class="row" style="justify-content:flex-start;gap:12px;flex-wrap:wrap"><img id="pqp" alt="" style="width:110px;height:110px;object-fit:contain;background:#fff;border-radius:12px"><input id="pqf" type="file" accept="image/*" style="max-width:260px"></div>
+  <p style="color:var(--mute);font-size:12px">ອັບໂຫຼດຮູບ QR ຂອງບັນຊີທະນາຄານຮ້ານ (ເຊັ່ນ QR ຈາກແອບທະນາຄານ). ຈະສະແດງເວລາເລືອກ "ໂອນ".</p>
   <button class="btn" id="ssv" style="max-width:260px;margin-top:8px">ບັນທຶກການຕັ້ງຄ່າ</button>
 <h3>ຜູ້ໃຊ້ງານ</h3>
   <div class="ufields">
@@ -356,15 +360,19 @@ async function loadPublicConfig(){
    const sh=await dGet('config','shop');if(sh)SHOP={...SHOP,...sh};
    const th=await dGet('config','theme');if(th){THEME={...THEME,...th};applyTheme()}
    const lg=await dGet('config','logo');if(lg&&lg.d)LOGO=lg.d;
+   const pq=await dGet('config','payqr');if(pq&&pq.d)PAYQR=pq.d;
  }catch(e){console.warn('config',e)}
  brand();setUI();
  const li=$('#lglogo');if(li)li.src=LOGO;
  const lt=$('#lgt');if(lt)lt.textContent=SHOP.name||'ເຂົ້າສູ່ລະບົບ';
+ const pp=$('#pqp');if(pp&&PAYQR)pp.src=PAYQR;
+ document.body.classList.remove('cfgwait');
 }
+let PAYQR='';
 let USERS=[],SESS=null;
 function applyPerm(){const st=!ADMIN;document.body.classList.toggle('staff',st);document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('hide',st&&!['sell','stock','cus'].includes(b.dataset.t)))}
 function ulist(){const el=$('#ulist');if(!el)return;const adm=!!(SESS&&SESS.role=='admin');el.innerHTML=USERS.map(u=>`<tr><td><b>${esc(u.name||'-')}</b><br><small style="color:var(--mute)">${esc(u.email||'')}</small><br><small style="color:var(--mute)">UID: ${esc(u.uid)}</small></td><td>${u.role=='admin'?'ຜູ້ດູແລ':u.role=='staff'?'ພະນັກງານ':'ລໍຖ້າອະນຸມັດ'}</td><td style="white-space:nowrap">${adm&&u.role=='pending'?`<button class="btn" data-ap="${esc(u.uid)}" style="padding:6px 10px;font-size:12px;max-width:none">ອະນຸມັດ</button> `:''}${adm?`<button class="x" data-pw="${esc(u.uid)}" title="ປ່ຽນລະຫັດ">🔑</button> <button class="x" data-ud="${esc(u.uid)}" title="ລຶບ">✕</button>`:''}</td></tr>`).join('')||'<tr><td style="color:var(--mute)">ຍັງບໍ່ມີຜູ້ໃຊ້</td></tr>'}
-function lgShow(){if(SESS)return;$('#lglogo').src=LOGO;$('#lg-login').classList.remove('hide');$('#lg-setup').classList.add('hide');$('#lu').placeholder='ອີເມວ';$('#lmode').textContent='ເຂົ້າສູ່ລະບົບດ້ວຍອີເມວ ແລະ ລະຫັດຜ່ານ'}
+function lgShow(){if(SESS)return;$('#lg-login').classList.remove('hide');$('#lg-setup').classList.add('hide');$('#lu').placeholder='ອີເມວ';$('#lmode').textContent='ເຂົ້າສູ່ລະບົບດ້ວຍອີເມວ ແລະ ລະຫັດຜ່ານ'}
 function lgEnter(s){SESS=s;ME=s.name;OWN=s.role=='admin';UN=false;document.body.classList.remove('locked');$('#login').classList.add('hide');$('#out').classList.remove('hide');$('#lp').value='';$('#lerr').textContent='';role();applyPerm();all()}
 function errMsg(e){const c=(e&&e.code)||'';if(/wrong-password|user-not-found|invalid-credential|invalid-login/.test(c))return 'ອີເມວ ຫຼື ລະຫັດຜ່ານບໍ່ຖືກຕ້ອງ';if(c.includes('invalid-email'))return 'ຮູບແບບອີເມວບໍ່ຖືກຕ້ອງ';if(c.includes('weak-password'))return 'ລະຫັດຜ່ານຕ້ອງມີຢ່າງໜ້ອຍ 6 ຕົວ';if(c.includes('email-already-in-use'))return 'ອີເມວນີ້ມີບັນຊີແລ້ວ ໃຫ້ເຂົ້າສູ່ລະບົບແທນ';if(c.includes('too-many-requests'))return 'ພະຍາຍາມຫຼາຍເກີນໄປ ກະລຸນາລອງໃໝ່ພາຍຫຼັງ';return 'ເກີດຂໍ້ຜິດພາດ: '+c}
 async function lgLogin(){const em=$('#lu').value.trim(),pw=$('#lp').value;$('#lerr').textContent='';try{await FAUTH.signInWithEmailAndPassword(em,pw)}catch(e){$('#lerr').textContent=errMsg(e)}}
@@ -472,7 +480,15 @@ $('#cart').onclick=e=>{const d=e.target.dataset;
  if(d.p){const p=P.find(x=>x.id==d.p);if(cart[d.p]<p.stock)cart[d.p]++;else toast('ສິນຄ້າໃນສາງມີພຽງ '+p.stock+' ເຄື່ອງ')}
  if(d.m&&--cart[d.m]<1)delete cart[d.m];drawCart()};
 $('#clr').onclick=()=>{cart={};drawCart()};
-$('#pay-btn').onclick=async()=>{const r0=+$('#rcv').value||0;if($('#pay').value=='ຕິດໜີ້'&&!$('#cn').value.trim()&&!$('#cp').value.trim())return toast('ຕິດໜີ້ ຕ້ອງໃສ່ຊື່ ຫຼື ເບີໂທລູກຄ້າ');if($('#pay').value!='ຕິດໜີ້'&&r0&&r0<total()&&!await yes('ເງິນທີ່ຮັບໜ້ອຍກວ່າຍອດລວມ. ດຳເນີນການຕໍ່?'))return;
+function confirmTransfer(){return new Promise(res=>{
+ const qr=PAYQR?`<img src="${PAYQR}" alt="QR" style="width:100%;max-width:280px;border-radius:12px;background:#fff;padding:8px">`:'<p style="color:var(--mute)">ຍັງບໍ່ໄດ້ຕັ້ງ QR ທະນາຄານ. ໄປທີ່ ຕັ້ງຄ່າ ເພື່ອອັບໂຫຼດກ່ອນ</p>';
+ $('#rc').innerHTML=`<h2 style="font-size:17px">ໂອນເງິນ</h2><div class="c" style="font-size:22px;font-weight:700;margin:6px 0">${fmt(total())}</div>${qr}<p class="c" style="font-size:12px;color:var(--mute);margin:8px 0">ໃຫ້ລູກຄ້າສະແກນ QR ດ້ວຍແອບທະນາຄານ ແລ້ວກົດຮັບເງິນເມື່ອໂອນສຳເລັດ</p><div class="fields"><button class="btn" id="tok">ຮັບເງິນແລ້ວ</button><button class="btn sec" id="tno">ຍົກເລີກ</button></div>`;
+ $('#m').classList.remove('hide');
+ const done=v=>{$('#m').classList.add('hide');res(v)};
+ $('#tok').onclick=()=>done(true);$('#tno').onclick=()=>done(false);
+})}
+$('#pay-btn').onclick=async()=>{
+ if($('#pay').value=='ໂອນ'&&!await confirmTransfer())return;const r0=+$('#rcv').value||0;if($('#pay').value=='ຕິດໜີ້'&&!$('#cn').value.trim()&&!$('#cp').value.trim())return toast('ຕິດໜີ້ ຕ້ອງໃສ່ຊື່ ຫຼື ເບີໂທລູກຄ້າ');if($('#pay').value!='ຕິດໜີ້'&&r0&&r0<total()&&!await yes('ເງິນທີ່ຮັບໜ້ອຍກວ່າຍອດລວມ. ດຳເນີນການຕໍ່?'))return;
  const ups=[],lines=Object.entries(cart).map(([id,q])=>{const p=P.find(x=>x.id==id);ups.push([p,Math.max(0,p.stock-q)]);return{id:p.id,name:p.name,price:p.price,q,warranty:p.warranty,cost:p.cost||0,sn:p.sn||''}});
  const n=new Date(),z=x=>String(x).padStart(2,'0');
  const s={no:'INV'+String(n.getFullYear()).slice(2)+z(n.getMonth()+1)+z(n.getDate())+'-'+z(n.getHours())+z(n.getMinutes())+z(n.getSeconds()),date:n.toISOString(),cust:$('#cn').value.trim(),phone:$('#cp').value.trim(),lines,disc:+$('#disc').value||0,total:total(),pay:$('#pay').value,by:ME,rcv:r0,paid:$('#pay').value=='ຕິດໜີ້'?Math.min(r0,total()):total()};
@@ -598,6 +614,8 @@ async function scanAny(){
    await qrStop();
  }
 }
+$('#pqf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const g=await shrink(f);if(!g)return toast('ອ່ານຮູບບໍ່ໄດ້');PAYQR=g;$('#pqp').src=g;
+ if(db){try{await db.doc('config/payqr').set({d:g});toast('ບັນທຶກ QR ແລ້ວ')}catch(x){fail()}}else{toast('ບັນທຶກ QR ໃນເຄື່ອງນີ້ແລ້ວ')}};
 $('#scan').onclick=scanAny;
 $('#bk').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ');await d.save({filename:'pos-backup.json',data:JSON.stringify({products:P,sales:S,expenses:EX,pays:PY,shop:SHOP},null,1)})}catch(e){}};
 $('#th').onclick=e=>{const i=e.target.closest('[data-th]');if(!i)return;THEME.i=+i.dataset.th;applyTheme();setUI()};
@@ -613,7 +631,7 @@ $('#ex').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)retur
  const r=[['ເລກບິນ','ວັນທີ','ລູກຄ້າ','ເບີໂທ','ສິນຄ້າ','ສ່ວນຫຼຸດ','ລວມ','ຊຳລະ'],...S.map(s=>[s.no,s.date,s.cust,s.phone,s.lines.map(l=>l.name+' x'+l.q).join('; '),s.disc,s.total,s.pay])];
  await d.save({filename:'sales.csv',data:'\ufeff'+r.map(a=>a.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\n')})}catch(e){}};
 applyTheme();brand();setUI();
-loadPublicConfig();
+loadPublicConfig();setTimeout(()=>document.body.classList.remove('cfgwait'),2500);
 (async()=>{try{db=await claude.use('db')}catch(e){db=null}
  if(db){$('#sy').textContent='☁ sync ແລ້ວ';try{const u=await claude.use('user');if(u){const m=await u.me();OWN=!!m.isOwner;ME=m.name||''}}catch(e){}db.doc('config/shop').onSnapshot(s=>{if(s.exists){SHOP={...SHOP,...s.data()};}brand();setUI();all()},()=>{});db.collection('pays').onSnapshot(s=>{PY=s.docs.map(d=>d.data());all()},()=>{});db.collection('expenses').onSnapshot(s=>{EX=s.docs.map(d=>d.data());all()},()=>{});db.doc('config/theme').onSnapshot(s=>{if(s.exists){THEME={...THEME,...s.data()};applyTheme();setUI()}},()=>{});db.doc('config/logo').onSnapshot(s=>{LOGO=s.exists&&s.data().d?s.data().d:LOGO0;brand();setUI()},()=>{});role();
   db.collection('products').onSnapshot(s=>{PR=s.docs.map(d=>d.data());mergeP()},()=>{$('#sy').textContent='sync ມີບັນຫາ'});
