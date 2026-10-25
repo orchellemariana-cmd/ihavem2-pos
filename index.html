@@ -526,7 +526,20 @@ const applyTheme=()=>{const r=document.documentElement,p=PRE[THEME.i]||PRE[0];r.
 const brand=()=>{$('#lg').src=LOGO;$('#sh').textContent=SHOP.name;document.title=SHOP.name+' POS'};
 const setUI=()=>{[['sn1',SHOP.name],['sn2',SHOP.tag],['sn3',SHOP.tel],['sn4',SHOP.addr],['sn5',SHOP.foot],['sn6',LOWN()]].forEach(([i,v])=>{$('#'+i).value=v==null?'':v});$('#lgp').src=LOGO;$('#tm').value=THEME.mode;$('#tb').value=THEME.bl||22;$('#th').innerHTML=PRE.map((p,i)=>'<button class="x" data-th="'+i+'" style="width:auto;height:36px;padding:0 14px;'+(i==THEME.i?'outline:2px solid '+p[1]:'')+'"><span style="color:'+p[1]+'">●</span> '+p[0]+'</button>').join('')};
 let IMG='',IMT='';
-const shrink=f=>new Promise(r=>{const fr=new FileReader();fr.onerror=()=>r('');fr.onload=()=>{const i=new Image();i.onerror=()=>r('');i.onload=()=>{const k=Math.min(1,480/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.72))};i.src=fr.result};fr.readAsDataURL(f)});
+const shrink=async f=>{
+  if(/heic|heif/i.test(f.type||'')||/\.(heic|heif)$/i.test(f.name||'')){f=await toJpeg(f);if(!f)return ''}
+  return shrinkRaw(f)
+};
+async function toJpeg(f){
+  try{
+    if(!window.heic2any){
+      await new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';s.onload=res;s.onerror=rej;document.head.appendChild(s)});
+    }
+    const out=await window.heic2any({blob:f,toType:'image/jpeg',quality:0.8});
+    return Array.isArray(out)?out[0]:out
+  }catch(e){toast('ແປງຮູບ HEIC ບໍ່ໄດ້. ກະລຸນາແປງເປັນ JPG ກ່ອນອັບໂຫຼດ');return null}
+}
+const shrinkRaw=f=>new Promise(r=>{const fr=new FileReader();fr.onerror=()=>r('');fr.onload=()=>{const i=new Image();i.onerror=()=>r('');i.onload=()=>{const k=Math.min(1,480/Math.max(i.width,i.height)),c=document.createElement('canvas');c.width=Math.round(i.width*k);c.height=Math.round(i.height*k);c.getContext('2d').drawImage(i,0,0,c.width,c.height);r(c.toDataURL('image/jpeg',.72))};i.src=fr.result};fr.readAsDataURL(f)});
 $('#im').onchange=async e=>{const f=e.target.files[0];IMG=f?await shrink(f):'';toast(IMG?'ເລືອກຮູບແລ້ວ':'ອ່ານຮູບບໍ່ໄດ້')};
 $('#imf').onchange=async e=>{const f=e.target.files[0],p=P.find(x=>x.id==IMT);if(f&&p){const g=await shrink(f);if(g){putP({...p,img:g});toast('ບັນທຶກຮູບແລ້ວ')}else toast('ອ່ານຮູບບໍ່ໄດ້')}e.target.value=''};
 const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode('pos:'+s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
