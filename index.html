@@ -159,6 +159,11 @@ nav button:active{transform:scale(.96)}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 @media print{body{background:#fff}.blob,.app,.toast{display:none!important}.modal{position:static;background:none;padding:0;display:block}.receipt{background:#fff;color:#000;box-shadow:none;border:0;backdrop-filter:none;max-width:100%;max-height:none}.noprint{display:none!important}}
 </style>
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="iHAVEM2 POS">
+<meta name="theme-color" content="#071a3a">
 </head>
 <body class="locked cfgwait">
 <div id="boot" style="position:fixed;top:14px;left:0;right:0;text-align:center;color:var(--text);font-size:14px;z-index:30;pointer-events:none">ກຳລັງໂຫຼດ...</div>
@@ -245,7 +250,8 @@ nav button:active{transform:scale(.96)}
   <h3 style="margin-top:0">ຕັ້ງຄ່າຮ້ານ</h3>
   <div class="form"><input id="sn1" placeholder="ຊື່ຮ້ານ"><input id="sn2" placeholder="ຄຳຂວັນ (ເທິງບິນ)"><input id="sn3" placeholder="ເບີໂທ"><input id="sn4" placeholder="ທີ່ຢູ່"><input id="sn5" placeholder="ຂໍ້ຄວາມທ້າຍບິນ"><input id="sn6" type="number" min="0" placeholder="ແຈ້ງເຕືອນສາງໜ້ອຍ (≤ ເຄື່ອງ)"></div>
   <h3>ໂລໂກ້</h3>
-  <div class="row" style="justify-content:flex-start;gap:12px;flex-wrap:wrap"><img id="lgp" alt="" style="width:72px;height:72px;border-radius:16px;object-fit:cover"><input id="lgf" type="file" accept="image/*" style="max-width:260px"><button class="btn sec" id="lgr" style="max-width:170px">ໃຊ້ໂລໂກ້ເດີມ</button></div>
+  <div class="row" style="justify-content:flex-start;gap:12px;flex-wrap:wrap"><img id="lgp" alt="" style="width:72px;height:72px;border-radius:16px;object-fit:cover"><input id="lgf" type="file" accept="image/*" style="max-width:260px"><button class="btn sec" id="lgr" style="max-width:170px">ໃຊ້ໂລໂກ້ເດີມ</button>
+  <button class="btn sec" id="dlicon" style="max-width:260px">ດາວໂຫຼດໄອຄອນໜ້າ Home (180px)</button></div>
   <h3>ຮູບແບບ (Theme)</h3>
   <div id="th" class="row" style="justify-content:flex-start;flex-wrap:wrap"></div>
   <div class="form" style="margin-top:12px"><select id="tm"><option value="dark">ມືດ</option><option value="light">ສະຫວ່າງ</option><option value="auto">ຕາມລະບົບ</option></select><label style="display:flex;flex-direction:column;font-size:13px;color:var(--mute)">ຄວາມເບລີ glass<input id="tb" type="range" min="6" max="40"></label></div>
@@ -651,6 +657,15 @@ async function scanAny(){
 }
 $('#pqf').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;const g=await shrink(f);if(!g)return toast('ອ່ານຮູບບໍ່ໄດ້');PAYQR=g;$('#pqp').src=g;
  if(db){try{await db.doc('config/payqr').set({d:g});toast('ບັນທຶກ QR ແລ້ວ')}catch(x){fail()}}else{toast('ບັນທຶກ QR ໃນເຄື່ອງນີ້ແລ້ວ')}};
+$('#dlicon').onclick=async()=>{
+ try{
+  const img=new Image();img.src=LOGO;await img.decode();
+  const c=document.createElement('canvas');c.width=180;c.height=180;const x=c.getContext('2d');
+  x.fillStyle='#ffffff';x.fillRect(0,0,180,180);x.drawImage(img,0,0,180,180);
+  c.toBlob(async b=>{const d=await claude.use('downloads');if(!d)return toast('ໃຊ້ໄດ້ໃນ Chrome/Safari ເທົ່ານັ້ນ');
+    await d.save({filename:'apple-touch-icon.png',data:b});toast('ດາວໂຫຼດໄອຄອນແລ້ວ. ອັບໂຫຼດເຂົ້າ GitHub ແທນໄຟລ໌ເກົ່າ')},'image/png');
+ }catch(e){toast('ດາວໂຫຼດໄອຄອນບໍ່ໄດ້')}
+};
 $('#scan').onclick=scanAny;
 $('#pay').onchange=renderQr;
 $('#bk').onclick=async()=>{try{const d=await claude.use('downloads');if(!d)return toast('ໜ້ານີ້ບໍ່ຮອງຮັບການດາວໂຫຼດ');await d.save({filename:'pos-backup.json',data:JSON.stringify({products:P,sales:S,expenses:EX,pays:PY,shop:SHOP},null,1)})}catch(e){}};
